@@ -1,0 +1,24 @@
+{
+  "name": "postsender",
+  "version": "0.0.1",
+  "description": "mainly use post method for android homework and vue learn",
+  "main": "app.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/into233/postsender.git"
+  },
+  "keywords": [
+    "nodejs",
+    "vue",
+    "post"
+  ],
+  "author": "tion",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/into233/postsender/issues"
+  },
+  "homepage": "https://github.com/into233/postsender#readme"
+}
