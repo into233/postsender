@@ -20,5 +20,14 @@
   "bugs": {
     "url": "https://github.com/into233/postsender/issues"
   },
-  "homepage": "https://github.com/into233/postsender#readme"
+  "homepage": "https://github.com/into233/postsender#readme",
+  "dependencies": {
+    "koa": "^2.7.0",
+    "koa-bodyparser": "^4.2.1",
+    "koa-router": "^7.4.0",
+    "koa-session": "^5.10.1",
+    "typings": "^2.1.1",
+    "uid": "0.0.2",
+    "uuid": "^3.3.2"
+  }
 }

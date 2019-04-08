@@ -1,3 +1,3 @@
 # PostSender
 
-## mainly use post method for android homework and vue learn
+## Mainly use post method for android homework and vue learning
