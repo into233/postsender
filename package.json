@@ -2,7 +2,7 @@
   "name": "postsender",
   "version": "0.0.1",
   "description": "mainly use post method for android homework and vue learn",
-  "main": "app.js",
+  "main": "app.ts",
   "scripts": {
     "test": "npm test"
   },
@@ -22,12 +22,21 @@
   },
   "homepage": "https://github.com/into233/postsender#readme",
   "dependencies": {
+    "@types/koa": "^2.0.48",
+    "@types/koa-router": "^7.0.40",
+    "@types/node": "^11.13.2",
+    "https-proxy-agent": "^ 2.2.0",
     "koa": "^2.7.0",
     "koa-bodyparser": "^4.2.1",
     "koa-router": "^7.4.0",
     "koa-session": "^5.10.1",
-    "https-proxy-agent": "> 2.2.0",
-    "typings": "^2.1.1",
+    "mysql": "^2.16.0",
+    "mysql2": "^1.6.5",
+    "reflect-metadata": "^0.1.13",
+    "sequelize": "^5.3.4",
     "uuid": "^3.3.2"
+  },
+  "devDependencies": {
+    "@types/sequelize": "^4.27.46"
   }
 }
