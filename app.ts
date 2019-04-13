@@ -5,6 +5,8 @@ const bodyParser = require('koa-bodyparser');
 const controller = require('./controllers');
 const db = require('./db')
 
+interface ctxnext{ctx:Koa.Context, next:Function};
+
 var app = new Koa.default();
 
 app.use(bodyParser());
@@ -15,6 +17,8 @@ app.use(async (ctx:Koa.Context, next:Function) => {
     var time :number= Date.now() - start;
     console.log(`${ctx.method} ${ctx.url} in ${time}ms from ${ctx.request.ip.split(':').pop()}`)
 });
+
+
 app.use(controller());
 
 app.listen(3000);

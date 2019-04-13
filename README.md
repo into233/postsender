@@ -7,3 +7,6 @@
 ``` shell
 npm install
 ts-node app.ts
+
+if you edit the source run use:
+tsc && ts-node app.ts

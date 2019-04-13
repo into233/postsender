@@ -35,7 +35,7 @@ class Artical extends Model {
     public readonly createdAt!: Date;
     public readonly updatedAt!: Date;
 
-    public getUser!: HasOneGetAssociationMixin<Artical>;
+    public getCMUser!: HasOneGetAssociationMixin<CMUser>;//It's just a interface for "typescript", so DONT custom it
 };
 //community user
 class CMUser extends Model {
@@ -110,7 +110,9 @@ var exp = {
             var newartical = await Artical.create({
                 content: 'firstttt',
             });
-            var a = await newuser.addArtical(newartical);
+            await newuser.addArtical(newartical);
+            var a = await newartical.getCMUser();
+
             console.log('new artical userid = ', newartical.CMUserId);
             return a;
             
