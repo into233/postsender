@@ -2,8 +2,7 @@
 
 import * as Sequelize from 'sequelize';
 import { NUMBER, Model, STRING, HasManyGetAssociationsMixin, HasManyCountAssociationsMixin, HasManyHasAssociationMixin, HasManyRemoveAssociationsMixin, HasOneGetAssociationMixin, HasManyAddAssociationMixin, INTEGER } from 'sequelize';
-import { userInfo } from 'os';
-var uuid = require('uuid');
+import uuid = require('uuid');
 
 var sequelize = new Sequelize.Sequelize('wzqsq', 'root', '123456', {
     port: 3306,
@@ -63,10 +62,15 @@ CMUser.init({
     name: {
         type: STRING(32),
         allowNull: false,
+        unique: true,
     },
     password: {
         type: STRING(32),
         allowNull: false
+    },
+    gender: {
+        type: STRING(6),
+        allowNull: true,
     }
 }, {
         tableName: 'cmusers',
@@ -115,7 +119,7 @@ var exp = {
 
             console.log('new artical userid = ', newartical.CMUserId);
             return a;
-            
+
         })
     },
 
