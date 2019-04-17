@@ -61,10 +61,10 @@ var GETregist = async (ctx: Context, next: Function) => {
 var POSTregist = async (ctx: Context, next: Function) => {
     var uname = ctx.request.body.username;
     var upassword = ctx.request.body.password;
-    var ugender = ctx.request.body.gender;
+    var ugender = ctx.request.body.gender || '';
 
     //TODO: more judgements
-    if (!uname || !upassword || !ugender) {
+    if (!uname || !upassword) {
         ctx.response.body = { message: 'input valide' };
         return;
     }
@@ -73,7 +73,9 @@ var POSTregist = async (ctx: Context, next: Function) => {
     if (!(await db.CMUser.findOne({ where: {name:uname} }))) {
         var newuser = await db.CMUser.create(newUserConfig);
         console.log("create a User " + newuser.id + " " + newuser.name + " " + newuser.gender);
-        ctx.redirect('/signIn');
+        ctx.cookies.set('username', newUserConfig.name);
+        
+        ctx.redirect('/login');
     } else {
         ctx.response.body = 'username has already exists';
         console.log("create a User " + uname + " username has already exists");
@@ -81,7 +83,7 @@ var POSTregist = async (ctx: Context, next: Function) => {
     await next();
 }
 
-var GETsignIn = async (ctx: Context, next: Function) => {
+var GETlogin = async (ctx: Context, next: Function) => {
     ctx.response.type = 'html';
     ctx.response.body = createReadStream('./static/html/login.htm');
     await next();
@@ -89,7 +91,6 @@ var GETsignIn = async (ctx: Context, next: Function) => {
 var POSTlogin = async (ctx: Context, next: Function) => {
     var uname = ctx.request.body.username;
     var upassword = ctx.request.body.password;
-
     //TODO: more judgements
     if (!uname || !upassword) {
         ctx.response.body = { message: 'input valide' };
@@ -97,6 +98,9 @@ var POSTlogin = async (ctx: Context, next: Function) => {
     }
     var a = await db.CMUser.findOne({ where: { name: uname, password: upassword } });
     if(a){
+        ctx.session.username = {uname};
+        ctx.cookies.set('username', uname);
+
         console.log(`${a.name} was login!`);
         ctx.redirect('/welcome');
     }else{
@@ -104,9 +108,13 @@ var POSTlogin = async (ctx: Context, next: Function) => {
         ctx.response.body = 'wrong password or username';
     }
     await next();
-
 }
 var Welcome = async (ctx: Context, next: Function) => {
+    if(ctx.session.username == null){
+        ctx.redirect('/login')
+        return;
+    }
+
     ctx.response.type = 'html';
 
     ctx.response.body = createReadStream('./static/html/success.htm');
@@ -118,9 +126,9 @@ module.exports = {
     'GET /sync': syncs,
     'GET /cookietest': cookietest,
     'GET /favicon.ico': favicon,
-    'GET /signIn': GETsignIn,
+    'GET /login': GETlogin,
     'GET /signOn': GETregist,
     'POST /signOn': POSTregist,
-    'POST /signIn': POSTlogin,
+    'POST /login': POSTlogin,
     'GET /welcome': Welcome,
 };
