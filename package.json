@@ -4,7 +4,9 @@
   "description": "mainly use post method for android homework and vue learn",
   "main": "app.ts",
   "scripts": {
-    "test": "npm test"
+    "test": "npm test",
+    "tsc":"tsc --watch",
+    "start": "pm2 start app.js --watch dist"
   },
   "repository": {
     "type": "git",

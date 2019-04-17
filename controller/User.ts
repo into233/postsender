@@ -1,19 +1,15 @@
 import { Context } from "koa";
-import * as db from "../db";
 import { readFile, readFileSync, createReadStream } from "fs";
+import User from '../module/User';
+import CMUser from "../module/User";
 
-var MyUser = async (ctx: Context, next: Function) => {
-    ctx.response.body = "hello world";
-    console.log(ctx.request.header);
-
-    await next;
-}
 var addUser = async (ctx: Context, next: Function) => {
-    var nuser = await db.CMUser.create({
+    var nuser = await User.create({
         name: 'tion',
         password: '123456',
         gender: 'male',
     });
+
     console.log(nuser.id);
 }
 var cookietest = async (ctx: Context, next: Function) => {
@@ -27,11 +23,7 @@ var cookietest = async (ctx: Context, next: Function) => {
         ctx.body = 'Welcome back! Nothing much changed since your last visit at ' + lastVisit + '.';
     }
 }
-var syncs = async (ctx: Context, next: Function) => {
 
-    var bd = await db.fc();
-    ctx.body = bd;
-}
 //return favicon.ico TODO:BUG 
 var favicon = async (ctx: Context, next: Function) => {
     var path = '/../static/img/favicon.ico';
@@ -69,9 +61,9 @@ var POSTregist = async (ctx: Context, next: Function) => {
         return;
     }
     var newUserConfig = { name: uname, password: upassword, gender: ugender };
-
-    if (!(await db.CMUser.findOne({ where: {name:uname} }))) {
-        var newuser = await db.CMUser.create(newUserConfig);
+    
+    if (!(await User.findOne({ where: {name:uname} }))) {
+        var newuser = await User.create(newUserConfig);
         console.log("create a User " + newuser.id + " " + newuser.name + " " + newuser.gender);
         ctx.cookies.set('username', newUserConfig.name);
         
@@ -96,7 +88,8 @@ var POSTlogin = async (ctx: Context, next: Function) => {
         ctx.response.body = { message: 'input valide' };
         return;
     }
-    var a = await db.CMUser.findOne({ where: { name: uname, password: upassword } });
+    
+    var a = await User.findOne({ where: { name: uname, password: upassword } });
     if(a){
         ctx.session.username = {uname};
         ctx.cookies.set('username', uname);
@@ -121,9 +114,7 @@ var Welcome = async (ctx: Context, next: Function) => {
     await next();
 }
 module.exports = {
-    'GET /User': MyUser,
     'GET /addUser': addUser,
-    'GET /sync': syncs,
     'GET /cookietest': cookietest,
     'GET /favicon.ico': favicon,
     'GET /login': GETlogin,
