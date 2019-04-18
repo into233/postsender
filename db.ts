@@ -1,6 +1,10 @@
 import * as Sequelize from 'sequelize';
+import db from './config';
+var dbconfig = db.db;
 
-var sequelize = new Sequelize.Sequelize('wzqsq', 'root', '123456', {
+if(process.env.NODE_ENV == 'test')
+    dbconfig = db.testdb;
+var sequelize = new Sequelize.Sequelize(dbconfig.database, dbconfig.user, dbconfig.password, {
     port: 3306,
     host: 'localhost',
     dialect: 'mysql',

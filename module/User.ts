@@ -1,26 +1,31 @@
-import Artical from './Artical';
-import { Model, HasManyGetAssociationsMixin, HasManyCountAssociationsMixin, HasManyHasAssociationMixin, HasManyAddAssociationMixin, INTEGER, STRING } from 'sequelize/types';
 import sequelize from '../db';
-//community user
-class CMUser extends Model {
-    public id!: number;
-    public name!: string;
-    public password!: string;
-    public gender!: string;
-    public headimage!: string;
+import Artical from './Artical';
+import { Model, HasManyGetAssociationsMixin, HasManyCountAssociationsMixin, HasManyHasAssociationMixin, HasManyAddAssociationMixin, INTEGER, STRING } from 'sequelize';
+import { createHash } from 'crypto';
+function md5(str:string):string{
+    let mdg = createHash('md5');
+    return mdg.update(str).digest('hex');    
 
-    public readonly createdAt!: Date;
-    public readonly updatedAt!: Date;
+}//community user
+class User extends Model {
+    public id: number;
+    public username: string;
+    public password: string;
+    public gender: string;
+    public headimage: string;
+    public phonenumber:number;
+
+    public readonly createdAt: Date;
+    public readonly updatedAt: Date;
 
     public getArticals: HasManyGetAssociationsMixin<Artical>;
     public countArticals: HasManyCountAssociationsMixin;
     public hasArticals: HasManyHasAssociationMixin<Artical, number>;
-    public addArtical: HasManyAddAssociationMixin<Artical, number>;
-
+    public addArtical: HasManyAddAssociationMixin<Artical, number>;//haha this tm in the __prototype
 };
 
 
-CMUser.init({
+User.init({
     id: {
         type: INTEGER.UNSIGNED,
         autoIncrement: true,
@@ -40,10 +45,32 @@ CMUser.init({
         allowNull: true,
     }
 }, {
-        tableName: 'cmusers',
-        modelName: 'CMUser',
+        tableName: 'users',
+        modelName: 'User',
         sequelize: sequelize,
     });
-CMUser.hasMany(Artical);
+User.hasMany(Artical, {foreignKey:'user_id',constraints:false});
 
-export default CMUser;
+
+interface IUser {
+    username: string,
+    password: string,
+    gender:string,
+    headimage:string|null,
+    phonenumber:number|null;
+}
+
+export default {
+    async createUser(user:IUser){
+        return User.create({
+            username:user.username,
+            password: md5(user.password),
+            gender:user.gender,
+            headimage:user.headimage,
+            phonenumber:user.phonenumber
+        })
+    }
+};
+
+
+export {User}
