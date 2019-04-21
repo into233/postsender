@@ -1,6 +1,6 @@
 import { Context } from "koa";
 import { readFile, readFileSync, createReadStream } from "fs";
-import {User} from '../module/User';
+import {User, findUser} from '../module/User';
 import sequelize from '../db';
 import { createHash } from "crypto";
 import Artical from "../module/Artical";
@@ -8,7 +8,7 @@ import Artical from "../module/Artical";
 
 var addUser = async (ctx: Context, next: Function) => {
     var nuser = await User.create({
-        name: 'tion',
+        username: 'tion',
         password: '123456',
         gender: 'male',
     });
@@ -18,6 +18,13 @@ var addUser = async (ctx: Context, next: Function) => {
         imagedir:'/home/tion/node/static/image/ASDKFDLSOEIFLXLVIDOSOFOXSNFJDISO.jpg',
     })
     await nuser.addArtical(narticle);
+
+    var article = await Artical.findOne({where:{title:'fjkdsa'}});
+    if(article){
+        var au = await article.getUser();
+        console.log(au.id);
+    }
+
     console.log(nuser.id);
 }
 var cookietest = async (ctx: Context, next: Function) => {
@@ -65,7 +72,7 @@ var POSTregist = async (ctx: Context, next: Function) => {
 
     //TODO: more judgements
     if (!uname || !upassword) {
-        ctx.response.body = { message: 'input valide' };
+        ctx.response.body = { msg: 'input valide' };
         return;
     }
     var md5 = createHash('md5');
@@ -77,10 +84,15 @@ var POSTregist = async (ctx: Context, next: Function) => {
         console.log("create a User " + newuser.id + " " + newuser.username + " " + newuser.gender);
         ctx.cookies.set('username', newUserConfig.name);
 
-        ctx.redirect('/login');
+        if(ctx.request.body.android){
+            ctx.response.type = 'json';
+            ctx.response.body = {msg:'regist success'};
+        }else
+            ctx.redirect('/login');
     } else {
-        ctx.response.body = 'username has already exists';
-        console.log("create a User " + uname + " username has already exists");
+        ctx.response.type = 'json'
+        ctx.response.body = {msg:'username has already exists'};
+        console.log("create a Username " + uname + " username has already exists");
     }
     await next();
 }
@@ -95,23 +107,25 @@ var POSTlogin = async (ctx: Context, next: Function) => {
     var upassword = ctx.request.body.password;
     //TODO: more judgements
     if (!uname || !upassword) {
-        ctx.response.body = { message: 'input valide' };
+        ctx.response.body = { msg: 'input valide' };
         return;
     }
-    var md5 = createHash('md5');
 
-    upassword = md5.update(upassword).digest('hex');
-
-    var a = await User.findOne({ where: { name: uname, password: upassword } });
+    var a = await findUser({ username: uname, password: upassword });
     if (a) {
         ctx.session.username = { uname };
         ctx.cookies.set('username', uname);
 
         console.log(`${a.username} was login!`);
-        ctx.redirect('/welcome');
+        if(ctx.request.body.android)
+        {
+            ctx.type = 'json';
+            ctx.response.body = {msg:'success login'};
+        }else
+            ctx.redirect('/welcome');
     } else {
         ctx.response.type = 'json';
-        ctx.response.body = 'wrong password or username';
+        ctx.response.body = {msg:'wrong password or username'};
     }
     await next();
 }
@@ -127,11 +141,10 @@ var Welcome = async (ctx: Context, next: Function) => {
     await next();
 }
 
+
 var sync = async (ctx: Context, next: Function) => {
     await sequelize.sync().then(() => {
-
     })
-
     ctx.response.type = 'html';
     ctx.response.body = 'sync success';
 }
