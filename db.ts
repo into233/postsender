@@ -1,9 +1,11 @@
 import * as Sequelize from 'sequelize';
 import db from './config';
 var dbconfig = db.db;
-
-if(process.env.NODE_ENV == 'test')
+var logging = true;
+if(process.env.NODE_ENV == 'test'){
     dbconfig = db.testdb;
+    logging = false;
+}
 var sequelize = new Sequelize.Sequelize(dbconfig.database, dbconfig.user, dbconfig.password, {
     port: 3306,
     host: 'localhost',
@@ -13,6 +15,7 @@ var sequelize = new Sequelize.Sequelize(dbconfig.database, dbconfig.user, dbconf
         min: 0,
         idle: 30000,
     },
+    logging:logging,
     dialectOptions: {
         useUTC: false,
         dateStrings: true,
@@ -23,8 +26,9 @@ var sequelize = new Sequelize.Sequelize(dbconfig.database, dbconfig.user, dbconf
             return next()
         },
     },
-    timezone: '+08:00'
+    timezone: '+08:00',
 });
+
 
 
 export default sequelize;

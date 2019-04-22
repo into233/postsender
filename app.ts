@@ -14,7 +14,7 @@ app.use(session({
         cookie: {                   // 与 cookie 相关的配置
             domain: 'localhost',    // 写 cookie 所在的域名
             path: '/',              // 写 cookie 所在的路径
-            maxAge: 60 * 60 * 24 * 30 * 1000,      // cookie 有效时长 1个月
+            maxAge: 60 * 60 * 24 * 24 * 1000,      // cookie 有效时长 24天 sd number 
             httpOnly: true,         // 是否只用于 http 请求中获取
             overwrite: false,        // 是否允许重写
         },

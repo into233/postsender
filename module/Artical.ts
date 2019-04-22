@@ -40,14 +40,9 @@ Artical.init({
         modelName: 'Artical',
         sequelize
     })
-Artical.hasMany(Comment, {constraints:false});
-Comment.belongsTo(Artical);
-User.hasMany(Comment, {constraints:false});
-Comment.belongsTo(User);
-Artical.belongsTo(User);
-User.hasMany(Artical, { constraints: false });
-
 
 // Artical.belongsTo(User);//something wrong??
+Artical.belongsTo(User);
+User.hasMany(Artical, { constraints: false });
 
 export default Artical;

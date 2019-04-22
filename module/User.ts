@@ -2,7 +2,9 @@ import sequelize from '../db';
 import Artical from './Artical';
 import { Model, HasManyGetAssociationsMixin, HasManyCountAssociationsMixin, HasManyHasAssociationMixin, HasManyAddAssociationMixin, INTEGER, STRING, HasManyCreateAssociationMixin } from 'sequelize';
 import { createHash } from 'crypto';
-import {Comment} from './Comment';
+import { Comment } from './Comment';
+import { CommentPraise } from './CommentPraise';
+import { Collect } from './Collect';
 function md5(str: string): string {
     let mdg = createHash('md5');
     return mdg.update(str).digest('hex');
@@ -13,6 +15,7 @@ class User extends Model {
     public username: string;
     public password: string;
     public gender: string;
+    public email: string;
     public headimage: string;
     public phonenumber: number;
 
@@ -25,6 +28,9 @@ class User extends Model {
     public addArtical: HasManyAddAssociationMixin<Artical, number>;//haha this tm in the __prototype
     public createComment: HasManyCreateAssociationMixin<Comment>;
     public addComment: HasManyAddAssociationMixin<Comment, number>;
+    public addCommentPraise: HasManyAddAssociationMixin<CommentPraise, number>;
+    public createArtical: HasManyCreateAssociationMixin<Artical>;
+    public createCollect: HasManyCreateAssociationMixin<Collect>;
 };
 
 
@@ -43,10 +49,23 @@ User.init({
         type: STRING(32),
         allowNull: false
     },
+    email: {
+        type: STRING(64),
+        allowNull: true,
+    },
     gender: {
         type: STRING(6),
         allowNull: true,
-    }
+    },
+    headimage: {
+        type: STRING(256),
+        allowNull: true,
+    },
+    phonenumber: {
+        type: STRING(20),
+        allowNull: true,
+    },
+
 }, {
         tableName: 'users',
         modelName: 'User',
@@ -56,29 +75,51 @@ User.init({
 
 
 interface IUser {
+    id?: number,
     username: string,
     password: string,
     gender: string,
-    headimage: string | null,
-    phonenumber: number | null;
+    email?: string | null,
+    headimage?: string | null,
+    phonenumber?: number | null;
 }
 
 
-var createUser = async (user: IUser)=>{
+var createUser = async (user: IUser) => {
     return User.create({
         username: user.username,
         password: md5(user.password),
         gender: user.gender,
+        email: user.email,
         headimage: user.headimage,
         phonenumber: user.phonenumber
     })
 };
-var findUser = async (user:any)=>{
-    return User.findOne({where:{
-        username: user.username,
-        password: md5(user.password),
-    }});
+var updateUser = async (user: IUser) => {
+    if (!user.id) {
+        throw new Error('user id is null');
+    }
+    var changinguser = await findUser(user);
+    if (!changinguser) {
+        throw new Error('user not found');
+    }
+    changinguser.username = user.username || changinguser.username;
+    changinguser.password = user.password || changinguser.password;
+    changinguser.gender = user.gender || changinguser.gender;
+    changinguser.email = user.email || changinguser.email;
+    changinguser.headimage = user.headimage || changinguser.headimage;
+    changinguser.phonenumber = user.phonenumber || changinguser.phonenumber;
+    changinguser.save();
+
+}
+var findUser = async (user: any) => {
+    return User.findOne({
+        where: {
+            username: user.username,
+            password: md5(user.password),
+        }
+    });
 };
 
 
-export { User , createUser, findUser}
+export { User, createUser, findUser, updateUser }

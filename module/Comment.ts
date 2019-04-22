@@ -1,18 +1,18 @@
 import sequelize from '../db';
 import Artical from './Artical';
 import { User } from './User';
-import { Model , INTEGER, STRING, HasOneGetAssociationMixin, HasManyAddAssociationMixin } from 'sequelize';
+import { Model, INTEGER, STRING, HasOneGetAssociationMixin, HasManyAddAssociationMixin } from 'sequelize';
 
 class Comment extends Model {
     public id: number;
     public content: string;
-    public praised: number;
 
     public readonly createdAt: Date;
     public readonly updatedAt: Date;
 
     public getArtical: HasOneGetAssociationMixin<Artical>;
     public getUser: HasOneGetAssociationMixin<User>;
+    public addCommentPraise: HasManyAddAssociationMixin<Comment, number>;
 };
 
 
@@ -38,13 +38,18 @@ Comment.init({
     });
 
 
+Artical.hasMany(Comment, { constraints: false });
+Comment.belongsTo(Artical);
+User.hasMany(Comment, { constraints: false });
+Comment.belongsTo(User);
+
+
 
 interface IComment {
-    content?: string;
-    praised?: string;
-    id?:number;
-    UserId?:number;
-    ArticleId?:number;
+    content: string;
+    id?: number;
+    UserId?: number;
+    ArticleId?: number;
 }
 
 
@@ -54,21 +59,7 @@ var createComment = async (comment: IComment) => {
         praised: 0,
     })
 };
-var praiseComment = async (comment: IComment) => {
-    var ifexit = null;
-
-    if(comment.id){
-        ifexit = await Comment.findOne({where:{id:comment.id}})
-    }
-    if(comment.ArticleId && comment.UserId){
-        ifexit = await Comment.findOne({where:{ArticleId:comment.ArticleId, UserId:comment.UserId}});
-    }
-    if(ifexit) {
-        ifexit.praised += 1;
-        ifexit.save();
-    };
-    return ifexit;
-}
 
 
-export { Comment, createComment, praiseComment};
+
+export { Comment, createComment };

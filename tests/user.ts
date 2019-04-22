@@ -1,61 +1,32 @@
 import test from 'ava';
-import { User, createUser, findUser } from '../module/User';
+import { User, createUser } from '../module/User';
 import Artical from '../module/Artical';
 import sequelize from '../db';
 import { createHash } from 'crypto';
-
-
-
-// test('foo',t=>{
-//     t.pass();
-// })
-
-// test('bar', async t => {
-//     const bar = Promise.resolve('bar');
-//     t.is(await bar, 'bar');
-// })
-
-// const hasLength = (t:ExecutionContext, input:string, expect:number)=>{
-//     console.log('env is in ' + process.env.NODE_ENV);
-//     t.is(input.length, expect);
-// }
-// test('bar has length 3', hasLength, 'bar', 3);
-
-async function deleteData(data: any[]) {
-    if (data.length == 0) return;
-    const compose = data.map(async (i) => {
-        await i.destroy();
-    })
-    await Promise.all(compose);
-}
-
-
-async function distoryall() {
-    let users = await User.findAll();
-    let article = await Artical.findAll();
-
-    await Promise.all([deleteData(users), deleteData(article)]);
-    console.log('already delete all data');
-}
-
 
 //如果数据库为空则sequelize会根据model的属性, 同步该数据库, 否则不会
 async function sync() {
     await sequelize.sync().then();
 }
-
+function randomfix() {
+    return Math.random().toString(32).substring(2);
+}
+var usernamefak: string;
+var articalcontentfak: string;
 async function fakerdata() {
+    usernamefak = 'faker' + randomfix();
+    articalcontentfak = 'jfkdsakclxv' + randomfix();
     let user = await createUser({
-        username: 'faker',
+        username: usernamefak,
         password: 'fakermd5',
         gender: 'male',
         headimage: 'fjdkafsfj',
         phonenumber: 13525912315
     });
     var article = await Artical.create({
-        title: 'fjkdsa',
-        content: 'jfkdsakclxv',
-        imagedir: '/home/tion/node/static/image/ASDKFDLSOEIFLXLVIDOSOFOXSNFJDISO.jpg',
+        title: 'fjkdsa' + randomfix(),
+        content: articalcontentfak,
+        imagedir: '/home/tion/node/static/image/' + randomfix(),
     });
     await user.addArtical(article);
 
@@ -66,32 +37,54 @@ function md5(str: string): string {
     return mdg.update(str).digest('hex');
 }
 
-test('test user create', async t => {
+test('test find method', async t => {
     await sync();
-    await distoryall();
+    // await distoryall();
     await fakerdata();
     t.true((await User.findAll()).length > 0);
     t.true((await Artical.findAll()).length > 0);
 
-})
-
-test('test find method', async t => {
-    let user = await User.findOne({ where: { username: 'faker' } });
-    let article = await Artical.findOne({ where: { content: 'jfkdsakclxv' } });
+    let user = await User.findOne({ where: { username: usernamefak } });
+    let article = await Artical.findOne({ where: { content: articalcontentfak } });
     if ((article) != null && user != null) {
         var auser = await article.getUser();
         t.is(auser.username, user.username);
     }
 
     t.not(user, null);
-    if (user)
-        t.is(user.username, 'faker');
+    if (user){
+        t.is(user.password, md5("fakermd5"));
+        t.is(user.username, usernamefak);
+        user.destroy();
+    }
 
     t.not(article, null);
-    if (article && user) {
+    if (article) {
         // t.is(article.userid, user.id);//这里article返回的没有id
-        t.is(user.password, md5("fakermd5"));
-
+        article.destroy();
     }
 })
 
+test('test user create articals', async t => {
+    let user = await createUser({
+        username: 'faker' + randomfix(),
+        password: 'fake5' + randomfix(),
+        gender: 'male',
+        headimage: randomfix(),
+        phonenumber: 13525912315
+    });
+    let articalh = await user.createArtical({ content: 'here is a test user create articals' }).then(artical => {
+        console.log(artical.id);
+        console.log("user create artical success");
+        t.true(artical != null);
+        artical.destroy();
+
+    }).catch(e => {
+        console.log(e);
+        console.log("user create artical failed");
+    });
+    user.destroy();
+    // t.true(articalh != null);
+    
+
+})

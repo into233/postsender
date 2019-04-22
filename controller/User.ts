@@ -1,13 +1,17 @@
 import { Context } from "koa";
 import { readFile, readFileSync, createReadStream } from "fs";
-import {User, findUser} from '../module/User';
+import {User, findUser, createUser} from '../module/User';
 import sequelize from '../db';
 import { createHash } from "crypto";
 import Artical from "../module/Artical";
+import { Comment } from "../module/Comment";
+import { CommentPraise } from "../module/CommentPraise";
+
+
 
 
 var addUser = async (ctx: Context, next: Function) => {
-    var nuser = await User.create({
+    var nuser = await createUser({
         username: 'tion',
         password: '123456',
         gender: 'male',
@@ -75,14 +79,14 @@ var POSTregist = async (ctx: Context, next: Function) => {
         ctx.response.body = { msg: 'input valide' };
         return;
     }
-    var md5 = createHash('md5');
-    upassword = md5.update(upassword).digest('hex');
-    var newUserConfig = { name: uname, password: upassword, gender: ugender };
 
-    if (!(await User.findOne({ where: { name: uname } }))) {
-        var newuser = await User.create(newUserConfig);
+    
+    var newUserConfig = { username: uname, password: upassword, gender: ugender };
+
+    if (!(await User.findOne({ where: { username: uname } }))) {
+        var newuser = await createUser(newUserConfig);
         console.log("create a User " + newuser.id + " " + newuser.username + " " + newuser.gender);
-        ctx.cookies.set('username', newUserConfig.name);
+        ctx.cookies.set('username', newUserConfig.username);
 
         if(ctx.request.body.android){
             ctx.response.type = 'json';
@@ -143,7 +147,11 @@ var Welcome = async (ctx: Context, next: Function) => {
 
 
 var sync = async (ctx: Context, next: Function) => {
-    await sequelize.sync().then(() => {
+    await sequelize.sync().then(async() => {
+        await Comment.findAll();
+        await CommentPraise.findAll();
+        await User.findAll();
+        await Artical.findAll();
     })
     ctx.response.type = 'html';
     ctx.response.body = 'sync success';
