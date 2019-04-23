@@ -2,7 +2,7 @@ import test from "ava";
 import { adddata, sync, destroyalldata } from "../utils/tests";
 import { createUser } from "../module/User";
 import Artical from "../module/Artical";
-import { Collect, createCollect } from "../module/Collect";
+import { createCollect } from "../module/Collect";
 
 
 var data:any = {};
@@ -25,8 +25,8 @@ test("add collect test", async t=>{
     if(collect){
         t.is(collect.UserId, data.user.id);
         console.log('add collect test success');
-        collect1.destroy();
-        collect.destroy();
+        await collect1.destroy();
+        await collect.destroy();
     }
     destroyalldata(data);
 })

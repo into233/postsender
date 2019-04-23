@@ -6,6 +6,8 @@ import { createHash } from "crypto";
 import Artical from "../module/Artical";
 import { Comment } from "../module/Comment";
 import { CommentPraise } from "../module/CommentPraise";
+import { ArticalPraise } from "../module/ArticalPraise";
+import { Collect } from "../module/Collect";
 
 
 
@@ -111,6 +113,7 @@ var POSTlogin = async (ctx: Context, next: Function) => {
     var upassword = ctx.request.body.password;
     //TODO: more judgements
     if (!uname || !upassword) {
+        ctx.response.type = 'json';
         ctx.response.body = { msg: 'input valide' };
         return;
     }
@@ -124,7 +127,7 @@ var POSTlogin = async (ctx: Context, next: Function) => {
         if(ctx.request.body.android)
         {
             ctx.type = 'json';
-            ctx.response.body = {msg:'success login'};
+            ctx.response.body = {msg:'login success'};
         }else
             ctx.redirect('/welcome');
     } else {
@@ -152,6 +155,9 @@ var sync = async (ctx: Context, next: Function) => {
         await CommentPraise.findAll();
         await User.findAll();
         await Artical.findAll();
+        await ArticalPraise.findAll();
+        await Collect.findAll();
+        
     })
     ctx.response.type = 'html';
     ctx.response.body = 'sync success';
