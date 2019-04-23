@@ -27,7 +27,7 @@ test("articalpraise test", async t => {
     t.true(datas.articalpraise!=null);
     if (datas.comment && datas.user &&datas.articalpraise) {
         t.is(datas.articalpraise.UserId, datas.user.id);
-        datas.articalpraise.destroy();
+        await datas.articalpraise.destroy();
     }
-    destroyalldata(datas);
+    await destroyalldata(datas);
 })

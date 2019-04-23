@@ -121,10 +121,12 @@ var POSTlogin = async (ctx: Context, next: Function) => {
     var a = await findUser({ username: uname, password: upassword });
     if (a) {
         ctx.session.username = { uname };
-        ctx.cookies.set('username', uname);
+        ctx.cookies.set('username', uname, {
+            httpOnly:false,
+        });
 
         console.log(`${a.username} was login!`);
-        if(ctx.request.body.android)
+        if(ctx.request.body.android)//如果是安卓设备则总是以json返回, 还要自己实现;
         {
             ctx.type = 'json';
             ctx.response.body = {msg:'login success'};

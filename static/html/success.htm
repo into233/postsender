@@ -5,11 +5,73 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <title>login</title>
 </head>
 
 <body>
-    <h1>WELCOME!</h1>
+    <h1 id="userapp">WELCOME!&nbsp;&nbsp;{{username}}</h1>
+    <div id="app">
+        {{ message }}
+    </div>
+
+    <div id="app2">
+        <span v-bind:title="message">
+            Hover your mouse over me for a few seconds
+            to see my dynamically bound title!
+        </span>
+    </div>
+
+    <div id="app3">
+        <span v-if="seen">
+            now you can see me
+        </span>
+    </div>
+
+    <div id="app-4">
+        <ol>
+            <li v-for="todo in todos">
+                {{todo.text}}
+            </li>
+        </ol>
+    </div>
+
+    <div id="app-5">
+        <p> {{message}}</p>
+        <button v-on:click="reverseMessage">Reverse message</button>
+    </div>
+
+    <div id="app-7">
+        <ol>
+            <todo-item 
+            v-for="(item) in groceryList" 
+            v-bind:todo="item" 
+            v-bind:key="item.id"></todo-item>
+        </ol>
+    </div>
+
 </body>
+<script>
+    var app = new Vue({
+        el: '#app',
+        data: {
+            message: 'hello vue',
+        },
+
+    })
+    var app2 = new Vue({
+        el: '#app2',
+        data: {
+            message: 'You loaded this page on ' + new Date().toLocaleString()
+        }
+    })
+    var app3 = new Vue({
+        el: '#app3',
+        data: {
+            seen: true,
+        }
+    })
+</script>
+<script src="../js/success.js"></script>
 
 </html>

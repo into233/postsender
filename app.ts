@@ -1,9 +1,14 @@
 require("reflect-metadata");
-// const Koa = require('koa');
 import  Koa from 'koa';
 const bodyParser = require('koa-bodyparser');
 const controller = require('./controllers');
+import server from 'koa-static';
+
+import * as path from 'path';
+
 import session from 'koa-session-minimal';
+
+const staticPath = './static'
 
 var app = new Koa();
 
@@ -34,8 +39,9 @@ app.use(async (ctx:Koa.Context, next:Function) => {
     console.log(`${ctx.method} ${ctx.url} in ${time}ms from ${ctx.request.ip.split(':').pop()}`)
 });
 
-
 app.use(controller());
+
+app.use(server(path.join(__dirname, staticPath)))
 
 app.listen(3000);
 console.log('the app is listen on localhost 3000...');
