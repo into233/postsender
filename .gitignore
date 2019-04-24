@@ -1,6 +1,11 @@
 node_modules/
 .vscode/
 typings/
-*.js
+/*.js
 *.js.map
+# !static/js/success.js
+controller/*.js
+module/*.js
+tests/*.js
+utils/*.js
 package-lock.json
