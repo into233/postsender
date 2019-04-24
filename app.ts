@@ -44,5 +44,5 @@ app.use(controller());
 app.use(server(path.join(__dirname, staticPath)))
 
 app.listen(3000);
-console.log('current process env: ' + process.env.NODE_ENV);
+console.log('current process env: ' + process.env.NODE_ENV||'proct');
 console.log('the app is listen on localhost 3000...');

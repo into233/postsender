@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible">
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@0.12.0/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.13.1/lodash.min.js"></script>
     <title>login</title>
 </head>
 
@@ -24,7 +26,7 @@
 
     <div id="app3">
         <span v-if="seen">
-            now you can see me
+            now you can see medssfdsafdavczzxzvsadafasd
         </span>
     </div>
 
@@ -43,11 +45,29 @@
 
     <div id="app-7">
         <ol>
-            <todo-item 
-            v-for="(item) in groceryList" 
-            v-bind:todo="item" 
-            v-bind:key="item.id"></todo-item>
+            <todo-item v-for="(item) in groceryList" v-bind:todo="item" v-bind:key="item.id"></todo-item>
         </ol>
+    </div>
+
+    <div id="example">
+        <p>orignal example:{{message}}</p>
+        <p>orignal example:{{reversemessage}}</p>
+        <p>whoami {{whoami}}</p>
+        <button @click="reversemsg">rmsg</button>
+    </div>
+
+    <div id="getuser">
+        <p>here is some question you can ask:
+        <input v-model="userid">
+        </p>
+        <p>{{data}}</p>
+    </div>
+
+    <div id="getuser2">
+            <p>here is the user of id's raw json data:
+            <input v-model="userid">
+            </p>
+            <p>{{data}}</p>
     </div>
 
 </body>

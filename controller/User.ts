@@ -174,4 +174,17 @@ module.exports = {
     'POST /login': POSTlogin,
     'GET /welcome': Welcome,
     'GET /sync': sync,
+    'GET /getuser/:id':async(ctx:Context, next:Function)=>{
+        var id = ctx.params.id;
+        var huser:any = {msg:"error"}
+        try {
+            huser = await User.findByPk(id);
+            ctx.type = 'json';
+            ctx.body = huser;
+        } catch (error) {
+            console.log(error);
+        }
+
+        
+    }
 };

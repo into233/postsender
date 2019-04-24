@@ -35,11 +35,6 @@ Collect.init({
         sequelize: sequelize,
     });
 
-Collect.hasMany(Artical, { constraints: false });
-Artical.belongsTo(Collect);
-User.hasMany(Collect, {constraints:false});
-Collect.belongsTo(User);
-
 var createCollect = async (user: User, title:string) => {
     return Collect.create({
         UserId: user.id,

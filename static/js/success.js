@@ -33,28 +33,118 @@ Vue.component('todo-item', {
 var app7 = new Vue({
     el: '#app-7',
     data: {
-        groceryList:[
-            {id:3, text:'蔬菜'},
-            {id:2, text:'水果'},
-            {id:1, text:'菠萝'},
+        groceryList: [{
+                id: 3,
+                text: '蔬菜'
+            },
+            {
+                id: 2,
+                text: '水果'
+            },
+            {
+                id: 1,
+                text: '菠萝'
+            },
         ]
     }
 })
-function getCookie(cname)
-{
-  var name = cname + "=";
-  var ca = document.cookie.split(';');
-  for(var i=0; i<ca.length; i++) 
-  {
-    var c = ca[i].trim();
-    if (c.indexOf(name)==0) return c.substring(name.length,c.length);
-  }
-  return "";
+
+function getCookie(cname) {
+    var name = cname + "=";
+    var ca = document.cookie.split(';');
+    for (var i = 0; i < ca.length; i++) {
+        var c = ca[i].trim();
+        if (c.indexOf(name) == 0) return c.substring(name.length, c.length);
+    }
+    return "";
 }
 
 var userapp = new Vue({
     el: '#userapp',
-    data:{
+    data: {
         username: getCookie('username'),
+    }
+})
+
+var example = new Vue({
+    el: '#example',
+    data: {
+        message: 'NoitTion',
+    },
+    computed: {
+        whoami: function () {
+            console.log(this);
+            return 'whoai';
+        },
+        reversemessage: function () {
+            return this.message.split('').reverse().join('');
+        }
+    },
+    methods: {
+        reversemsg: function () {
+            this.message = this.message.split('').reverse().join('');
+        },
+
+    }
+})
+var getuser = new Vue({
+    el: '#getuser',
+    data: {
+        userid: '',
+        data: "please input the id/question...",
+    },
+    watch: {
+        userid: function (lastid, currentid) {
+            this.debouncedGetAnswer();
+        },
+    },
+    created: function () {
+        this.debouncedGetAnswer = _.debounce(this.useridchange, 500);
+    },
+    methods: {
+        useridchange: function () {
+            if (this.userid.indexOf('?') === -1) {
+                this.data = "question must end with ?";
+                return;
+            }
+            this.data = "thinking";
+            var vm = this;
+            axios.get("https://yesno.wtf/api").then((result) => {
+                vm.data = result.data.answer;
+            }).catch((err) => {
+                vm.data = "oh this api doesn't work" + err;
+            });
+        }
+    }
+})
+
+var getuser2 = new Vue({
+    el: '#getuser2',
+    data: {
+        userid: '',
+        data: "please input the id/question...",
+    },
+    watch: {
+        userid: function (lastid, currentid) {
+            this.debouncedGetAnswer();
+        },
+    },
+    created: function () {
+        this.debouncedGetAnswer = _.debounce(this.useridchange, 500);
+    },
+    methods: {
+        useridchange: function () {
+            if (Number(this.userid) == NaN) {
+                this.data = "user id must be number";
+                return;
+            }
+            this.data = "loading...";
+            var vm = this;
+            axios.get("/getuser/" + this.userid).then((result) => {
+                vm.data = result;
+            }).catch((err) => {
+                vm.data = "oh this api doesn't work" + err;
+            });
+        }
     }
 })

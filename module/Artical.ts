@@ -2,6 +2,7 @@ import sequelize from '../db';
 import { Model, HasOneGetAssociationMixin, INTEGER, STRING, HasManyAddAssociationMixin } from "sequelize";
 import {User} from './User';
 import { Comment } from './Comment';
+import { Collect } from './Collect';
 
 class Artical extends Model {
     public id: number;
@@ -44,5 +45,11 @@ Artical.init({
 // Artical.belongsTo(User);//something wrong??
 Artical.belongsTo(User);
 User.hasMany(Artical, { constraints: false });
+
+Collect.hasMany(Artical, { constraints: false });
+Artical.belongsTo(Collect);
+User.hasMany(Collect, {constraints:false});
+Collect.belongsTo(User);
+
 
 export default Artical;
