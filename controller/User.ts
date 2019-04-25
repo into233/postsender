@@ -8,6 +8,7 @@ import { Comment } from "../module/Comment";
 import { CommentPraise } from "../module/CommentPraise";
 import { ArticalPraise } from "../module/ArticalPraise";
 import { Collect } from "../module/Collect";
+import { getUserByidForUser } from "../module/service/UserServiece";
 
 
 
@@ -145,7 +146,6 @@ var Welcome = async (ctx: Context, next: Function) => {
     }
 
     ctx.response.type = 'html';
-    
     ctx.response.body = createReadStream('./static/html/success.htm');
     await next();
 }
@@ -178,13 +178,11 @@ module.exports = {
         var id = ctx.params.id;
         var huser:any = {msg:"error"}
         try {
-            huser = await User.findByPk(id);
+            huser = await getUserByidForUser(id);
             ctx.type = 'json';
             ctx.body = huser;
         } catch (error) {
             console.log(error);
         }
-
-        
     }
 };

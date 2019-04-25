@@ -30,6 +30,18 @@ Vue.component('todo-item', {
     template: '<li>{{todo.text}}</li>',
 });
 
+Vue.component('count-button', {
+    data: function () {
+        return {
+            count: 0,
+        }
+    },
+    template: '<button v-on:click="count++">click {{count}} times</button>'
+});
+new Vue({
+    el: '#comment-demo1'
+});
+
 var app7 = new Vue({
     el: '#app-7',
     data: {
@@ -118,6 +130,7 @@ var getuser = new Vue({
     }
 })
 
+
 var getuser2 = new Vue({
     el: '#getuser2',
     data: {
@@ -134,16 +147,17 @@ var getuser2 = new Vue({
     },
     methods: {
         useridchange: function () {
-            if (Number(this.userid) == NaN) {
+            if (isNaN(parseInt(this.userid))) {
                 this.data = "user id must be number";
                 return;
             }
             this.data = "loading...";
             var vm = this;
             axios.get("/getuser/" + this.userid).then((result) => {
-                vm.data = result;
+                vm.data = result.data || "查无此人";
             }).catch((err) => {
-                vm.data = "oh this api doesn't work" + err;
+                vm.data = "oh this api doesn't work";
+                console.log(err);
             });
         }
     }

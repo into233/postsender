@@ -28,7 +28,7 @@ Artical.init({
         allowNull:true,
     },
     content: {
-        type: STRING(140),
+        type: STRING(340),
         allowNull: false,
     },
     imagedir: {

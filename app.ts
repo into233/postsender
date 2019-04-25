@@ -36,7 +36,7 @@ app.use(async (ctx:Koa.Context, next:Function) => {
     // }
     await next();
     var time :number= Date.now() - start;
-    console.log(`${ctx.method} ${ctx.url} in ${time}ms from ${ctx.request.ip.split(':').pop()}`)
+    console.log(`${ctx.method} ${ctx.url} in ${time}ms from ${ctx.request.ip.split(':').pop()}     ${new Date().toLocaleString()}`)
 });
 
 app.use(controller());

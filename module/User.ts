@@ -99,7 +99,7 @@ var updateUser = async (user: IUser) => {
     if (!user.id) {
         throw new Error('user id is null');
     }
-    var changinguser = await findUser(user);
+    var changinguser = await User.findOne({where:{id:user.id}});
     if (!changinguser) {
         throw new Error('user not found');
     }
@@ -110,8 +110,30 @@ var updateUser = async (user: IUser) => {
     changinguser.headimage = user.headimage || changinguser.headimage;
     changinguser.phonenumber = user.phonenumber || changinguser.phonenumber;
     changinguser.save();
+}
+var changePassword = async (username:string, oldpw:string,  newpw:string)=>{
+    if(!username){
+        throw new Error('username is null');
+    }
+    var changinguser = await findUser({username:username, password:oldpw});
+    if(!oldpw || !newpw){
+        throw new Error('oldpassword or newpassword is null');
+    }
+    if(!changinguser){
+        throw new Error('not find user or user password is wrong');
+    }
+    try{
+        changinguser.password = newpw;
+        changinguser.save();
+    }catch(err){
+        console.log('changePassword error', err);
+    }
 
 }
+
+/* 
+    仅仅为找密码用的
+ */
 var findUser = async (user: any) => {
     return User.findOne({
         where: {
@@ -122,4 +144,4 @@ var findUser = async (user: any) => {
 };
 
 
-export { User, createUser, findUser, updateUser }
+export { User, createUser, findUser, updateUser, changePassword }
