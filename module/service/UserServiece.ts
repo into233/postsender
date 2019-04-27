@@ -16,11 +16,10 @@ var getUserByidForUser = async(userid:number|string)=>{
 
         return userjson;
     }catch(err){
-        console.log(err);
+        // console.log(err);
         return null;
     }
     //DONT KNOW any questrion??
-    return nuser;
 }
 
 export {getUserByidForUser};

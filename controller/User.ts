@@ -9,6 +9,7 @@ import { CommentPraise } from "../module/CommentPraise";
 import { ArticalPraise } from "../module/ArticalPraise";
 import { Collect } from "../module/Collect";
 import { getUserByidForUser } from "../module/service/UserServiece";
+import { logger } from "../utils/logger";
 
 
 
@@ -54,7 +55,7 @@ var favicon = async (ctx: Context, next: Function) => {
     let icon;
     await readFile(__dirname + '/../config.json', 'utf8', (err: NodeJS.ErrnoException, data: string) => {
         if (err) {
-            console.log(err);
+            logger.error(err);
             return;
         }
         let config = JSON.parse(data);
@@ -88,7 +89,7 @@ var POSTregist = async (ctx: Context, next: Function) => {
 
     if (!(await User.findOne({ where: { username: uname } }))) {
         var newuser = await createUser(newUserConfig);
-        console.log("create a User " + newuser.id + " " + newuser.username + " " + newuser.gender);
+        logger.info("create a User " + newuser.id + " " + newuser.username + " " + newuser.gender);
         ctx.cookies.set('username', newUserConfig.username);
 
         if(ctx.request.body.android){
@@ -99,7 +100,7 @@ var POSTregist = async (ctx: Context, next: Function) => {
     } else {
         ctx.response.type = 'json'
         ctx.response.body = {msg:'username has already exists'};
-        console.log("create a Username " + uname + " username has already exists");
+        logger.warn("create a Username " + uname + " username has already exists");
     }
     await next();
 }
@@ -126,8 +127,8 @@ var POSTlogin = async (ctx: Context, next: Function) => {
             httpOnly:false,
         });
 
-        console.log(`${a.username} was login!`);
-        if(ctx.request.body.android)//如果是安卓设备则总是以json返回, 还要自己实现;
+        logger.info(`${a.username} was login!`);
+        if(ctx.request.body.android)//如果是安卓app则总是以json返回, 具体还要自己实现;
         {
             ctx.type = 'json';
             ctx.response.body = {msg:'login success'};
@@ -181,8 +182,9 @@ module.exports = {
             huser = await getUserByidForUser(id);
             ctx.type = 'json';
             ctx.body = huser;
+            logger.info("send data" + huser.username);
         } catch (error) {
-            console.log(error);
+            logger.error(error);
         }
     }
 };

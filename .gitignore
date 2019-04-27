@@ -10,3 +10,4 @@ tests/*.js
 utils/*.js
 package-lock.json
 module/**/*.js
+*.log

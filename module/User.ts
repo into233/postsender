@@ -5,6 +5,7 @@ import { createHash } from 'crypto';
 import { Comment } from './Comment';
 import { CommentPraise } from './CommentPraise';
 import { Collect } from './Collect';
+import { logger } from '../utils/logger';
 function md5(str: string): string {
     let mdg = createHash('md5');
     return mdg.update(str).digest('hex');
@@ -126,7 +127,7 @@ var changePassword = async (username:string, oldpw:string,  newpw:string)=>{
         changinguser.password = newpw;
         changinguser.save();
     }catch(err){
-        console.log('changePassword error', err);
+        logger.error('changePassword error', err);
     }
 
 }

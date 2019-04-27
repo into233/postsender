@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@0.12.0/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.13.1/lodash.min.js"></script>
+    <title>ajax tests</title>
+</head>
+
+<body>
+    <h1>ajax tests</h1>
+
+    <div id="jsontest">
+        url:&nbsp;&nbsp;<input v-model="url"><br/><br/>
+        senddata:&nbsp;&nbsp;<input v-model="sddata"><br/><br/>
+        <button @click="getpushartical()">test push artical</button><br />
+        json:<p>{{data}}</p><br />
+    </div>
+</body>
+<script>
+    var jsontest = new Vue({
+        el: '#jsontest',
+        data: {
+            url: '',
+            sddata: '',
+            data: 'please enter url and datas',
+        },
+
+        watch: {
+            url: function () {
+                this.debouncedgetPostdata();
+            },
+            sddata: function(){
+                this.debouncedgetPostdata();
+
+            }
+        },
+        created: function () {
+            this.debouncedgetPostdata = _.debounce(this.inputchanged, 500);
+        },
+        methods: {
+            inputchanged: function () {
+
+                if (this.url != '' && this.sddata != '') {
+                    this.data = 'loading';
+                    var senddatajson = JSON.parse(this.sddata);
+                    var jt = this;
+                    axios.post(this.url, senddatajson).then((result) => {
+                        jt.data = result.data;
+                        console.log(result);
+                    }).catch((err) => {
+                        jt.data = '信息错误或者服务器宕机 ' + err;
+                        console.log(err);
+
+                    });
+                }
+            },
+            getpushartical:function(){
+                this.url = '/getArticals';
+                this.sddata = '{"page":0, "size":10}';
+            }
+
+
+        }
+
+    })
+</script>
+
+
+</html>
