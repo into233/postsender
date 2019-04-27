@@ -25,7 +25,6 @@
   "homepage": "https://github.com/into233/postsender#readme",
   "dependencies": {
     "@types/koa": "^2.0.48",
-    "@types/koa-bodyparser": "^4.2.2",
     "@types/koa-router": "^7.0.40",
     "@types/koa-session-minimal": "^3.0.5",
     "@types/koa-static": "^4.0.1",
@@ -33,7 +32,7 @@
     "@types/uuid": "^3.4.4",
     "https-proxy-agent": "^ 2.2.0",
     "koa": "^2.7.0",
-    "koa-bodyparser": "^4.2.1",
+    "koa-body": "^4.1.0",
     "koa-router": "^7.4.0",
     "koa-session": "^5.10.1",
     "koa-session-minimal": "^3.0.4",

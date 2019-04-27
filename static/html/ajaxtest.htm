@@ -15,11 +15,16 @@
     <h1>ajax tests</h1>
 
     <div id="jsontest">
-        url:&nbsp;&nbsp;<input v-model="url"><br/><br/>
-        senddata:&nbsp;&nbsp;<input v-model="sddata"><br/><br/>
-        <button @click="getpushartical()">test push artical</button><br />
+        url:&nbsp;&nbsp;<input v-model="url"><br /><br />
+        senddata:&nbsp;&nbsp;<input v-model="sddata"><br /><br />
+        <button @click="getpushartical()"><em>test</em> push artical</button><br />
         json:<p>{{data}}</p><br />
     </div>
+    <form action="http://localhost:3000/uploadfile" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" id="file" value="" multiple="multiple" />
+        <input type="submit" value="提交" />
+    </form>
+
 </body>
 <script>
     var jsontest = new Vue({
@@ -34,7 +39,7 @@
             url: function () {
                 this.debouncedgetPostdata();
             },
-            sddata: function(){
+            sddata: function () {
                 this.debouncedgetPostdata();
 
             }
@@ -59,7 +64,7 @@
                     });
                 }
             },
-            getpushartical:function(){
+            getpushartical: function () {
                 this.url = '/getArticals';
                 this.sddata = '{"page":0, "size":10}';
             }

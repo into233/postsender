@@ -1,6 +1,7 @@
 import { Context } from "koa";
-import { readFile, readFileSync, createReadStream } from "fs";
-import {User, findUser, createUser} from '../module/User';
+import { readFile, readFileSync, createReadStream, createWriteStream } from "fs";
+import path from 'path';
+import { User, findUser, createUser } from '../module/User';
 import sequelize from '../db';
 import { createHash } from "crypto";
 import Artical from "../module/Artical";
@@ -21,14 +22,14 @@ var addUser = async (ctx: Context, next: Function) => {
         gender: 'male',
     });
     var narticle = await Artical.create({
-        title:'fjkdsa',
-        content:'jfkdsakclxv',
-        imagedir:'/home/tion/node/static/image/ASDKFDLSOEIFLXLVIDOSOFOXSNFJDISO.jpg',
+        title: 'fjkdsa',
+        content: 'jfkdsakclxv',
+        imagedir: '/home/tion/node/static/image/ASDKFDLSOEIFLXLVIDOSOFOXSNFJDISO.jpg',
     })
     await nuser.addArtical(narticle);
 
-    var article = await Artical.findOne({where:{title:'fjkdsa'}});
-    if(article){
+    var article = await Artical.findOne({ where: { title: 'fjkdsa' } });
+    if (article) {
         var au = await article.getUser();
         console.log(au.id);
     }
@@ -84,7 +85,7 @@ var POSTregist = async (ctx: Context, next: Function) => {
         return;
     }
 
-    
+
     var newUserConfig = { username: uname, password: upassword, gender: ugender };
 
     if (!(await User.findOne({ where: { username: uname } }))) {
@@ -92,14 +93,14 @@ var POSTregist = async (ctx: Context, next: Function) => {
         logger.info("create a User " + newuser.id + " " + newuser.username + " " + newuser.gender);
         ctx.cookies.set('username', newUserConfig.username);
 
-        if(ctx.request.body.android){
+        if (ctx.request.body.android) {
             ctx.response.type = 'json';
-            ctx.response.body = {msg:'regist success'};
-        }else
+            ctx.response.body = { msg: 'regist success' };
+        } else
             ctx.redirect('/login');
     } else {
         ctx.response.type = 'json'
-        ctx.response.body = {msg:'username has already exists'};
+        ctx.response.body = { msg: 'username has already exists' };
         logger.warn("create a Username " + uname + " username has already exists");
     }
     await next();
@@ -124,19 +125,19 @@ var POSTlogin = async (ctx: Context, next: Function) => {
     if (a) {
         ctx.session.username = { uname };
         ctx.cookies.set('username', uname, {
-            httpOnly:false,
+            httpOnly: false,
         });
 
         logger.info(`${a.username} was login!`);
-        if(ctx.request.body.android)//如果是安卓app则总是以json返回, 具体还要自己实现;
+        if (ctx.request.body.android)//如果是安卓app则总是以json返回, 具体还要自己实现;
         {
             ctx.type = 'json';
-            ctx.response.body = {msg:'login success'};
-        }else
+            ctx.response.body = { msg: 'login success' };
+        } else
             ctx.redirect('/welcome');
     } else {
         ctx.response.type = 'json';
-        ctx.response.body = {msg:'wrong password or username'};
+        ctx.response.body = { msg: 'wrong password or username' };
     }
     await next();
 }
@@ -153,14 +154,14 @@ var Welcome = async (ctx: Context, next: Function) => {
 
 
 var sync = async (ctx: Context, next: Function) => {
-    await sequelize.sync().then(async() => {
+    await sequelize.sync().then(async () => {
         await Comment.findAll();
         await CommentPraise.findAll();
         await User.findAll();
         await Artical.findAll();
         await ArticalPraise.findAll();
         await Collect.findAll();
-        
+
     })
     ctx.response.type = 'html';
     ctx.response.body = 'sync success';
@@ -175,9 +176,9 @@ module.exports = {
     'POST /login': POSTlogin,
     'GET /welcome': Welcome,
     'GET /sync': sync,
-    'GET /getuser/:id':async(ctx:Context, next:Function)=>{
+    'GET /getuser/:id': async (ctx: Context, next: Function) => {
         var id = ctx.params.id;
-        var huser:any = {msg:"error"}
+        var huser: any = { msg: "error" }
         try {
             huser = await getUserByidForUser(id);
             ctx.type = 'json';
@@ -186,5 +187,24 @@ module.exports = {
         } catch (error) {
             logger.error(error);
         }
+    }, 'POST /uploadfile': async (ctx: any, next: Function) => {
+        const file: any = ctx.request.files.file;
+
+        // const reader = createReadStream(file.path);
+        // let filepath = path.join(__dirname, '../uploadfiles/' + `/${file.name}`);
+        // const upStream = createWriteStream(filepath);
+        // reader.pipe(upStream);
+
+        return ctx.body = '上传成功';
+    },
+    'POST /uploadfiles': async (ctx: Context, next: Function) => {
+        const files: any = ctx.request.files;
+        for (let file of files) {
+            const reader = createReadStream(file.path);
+            let filepath = path.join(__dirname, '../uploadfiles/' + `/${file.name}`);
+            const upStream = createWriteStream(filepath);
+            reader.pipe(upStream);
+        }
+        return ctx.body = '上传成功';
     }
 };

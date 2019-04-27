@@ -20,7 +20,6 @@ var ajaxtest = async (ctx: Context, next: Function) => {
 var SpushArticles = async (ctx: Context, next: Function) => {
     var size = ctx.request.body.size;
     var page = ctx.request.body.page;
-    logger.debug(ctx.session);
 
     ctx.session.username = { uname: 'uaname' };
     // ctx.cookies.set('username', 'uaname', {
@@ -32,7 +31,7 @@ var SpushArticles = async (ctx: Context, next: Function) => {
     await pushArticals(page, size).then((result) => {
         ctx.type = 'json';
         ctx.body = result;
-        logger.info('debuginfo ' + result);
+        logger.info('debuginfo ' + JSON.stringify(result));
     }).catch((err) => {
         logger.error('pushArticles error:', err);
         ctx.type = 'json';

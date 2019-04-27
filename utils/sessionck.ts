@@ -6,9 +6,8 @@ var whiteurl = ['/', '/index', '/index.html', '/login', '/signon']
 
 
 var userlogin = async (ctx: Context, next: Function) => {
-    logger.info(ctx.url);
-    if (((ctx.session == undefined) || (ctx.session.username == undefined)) && 
-        !(whiteurl.findIndex(function(value){return value == ctx.url})) &&
+    if (((ctx.session == undefined) || (ctx.session.username == undefined)) &&
+        !(whiteurl.findIndex(function (value) { return value == ctx.url })) &&
         process.env.NODE_ENV == 'product') {
         ctx.redirect('/login');
         return;
