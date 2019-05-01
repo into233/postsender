@@ -17,10 +17,11 @@
     <div id="jsontest">
         url:&nbsp;&nbsp;<input v-model="url"><br /><br />
         senddata:&nbsp;&nbsp;<input v-model="sddata"><br /><br />
-        <button @click="getpushartical()"><em>test</em> push artical</button><br />
+        <button @click="getpushartical()"><em>test</em> push artical</button><button
+            @click="getdownload()"><em>test</em>downloadfile</button><br />
         json:<p>{{data}}</p><br />
     </div>
-    <form action="http://localhost:3000/uploadfile" method="post" enctype="multipart/form-data">
+    <form action="/uploadfile" method="post" enctype="multipart/form-data">
         <input type="file" name="file" id="file" value="" multiple="multiple" />
         <input type="submit" value="提交" />
     </form>
@@ -67,9 +68,11 @@
             getpushartical: function () {
                 this.url = '/getArticals';
                 this.sddata = '{"page":0, "size":10}';
+            },
+            getdownload: function () {
+                this.url = '/downloadfile';
+                this.sddata = '{"filename":"/upload_9d4bd28397091d893d3b6f6e9cf5c071.properties"}';
             }
-
-
         }
 
     })

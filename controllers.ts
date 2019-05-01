@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { logger } from "./utils/logger";
 
 //add all controllers to route
 const fs = require('fs');
@@ -9,17 +10,17 @@ function addMapping(router:Router, filepath:string){
         if(url.startsWith('GET')){
             let path = url.substring(4);
             router.get(path, Mappings[url]);
-            console.info(`add GET maping: ${path}`)
+            logger.info(`add GET maping: ${path}`)
         }else if(url.startsWith('POST')){
             let path = url.substring(5);
             router.post(path, Mappings[url]);
-            console.info(`add POST maping: ${path}`)
+            logger.info(`add POST maping: ${path}`)
         }else if(url.startsWith('DELETE')){
             let path = url.substring(7);
             router.delete(path, Mappings[url]);
-            console.info(`add DELETE maping: ${path}`)
+            logger.info(`add DELETE maping: ${path}`)
         }else{
-            console.warn(`invalid URL:${url}`)
+            logger.error(`invalid URL:${url}`)
         }
     }
 }
@@ -32,7 +33,7 @@ function addControllerss(router:Router, controller_dir:string){
         return f.endsWith('.js');
     })
     for(var file of jsfiles){
-        console.info(`Process controller file ${file}`);
+        logger.info(`Process controller file ${file}`);
         addMapping(router, dir + "/"+ file );
     }
 }

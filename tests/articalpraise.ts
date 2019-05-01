@@ -18,7 +18,7 @@ test("articalpraise test", async t => {
     await sync();
     await fakedata();
 
-    adddata(datas, 'articalpraise', await createArticalPraise(datas.artical, datas.user));
+    adddata(datas, 'articalpraise', await createArticalPraise(datas.artical.id, datas.user.id));
 
 
     t.true(datas.user != null);

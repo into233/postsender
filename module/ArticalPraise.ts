@@ -41,10 +41,10 @@ ArticalPraise.belongsTo(Artical);
 
 
 
-var createArticalPraise = async (artical: Artical, user: User) => {
+var createArticalPraise = async (articalId:number, UserId:number) => {
     return ArticalPraise.create({
-        UserId: user.id,
-        ArticalId: artical.id,
+        UserId: UserId,
+        ArticalId: articalId,
     })
 };
 

@@ -1,9 +1,9 @@
 import * as Sequelize from 'sequelize';
-import db from './config';
-var dbconfig = db.db;
+import {db, testdb} from './config';
+var dbconfig = db;
 var logging = true;
 if(process.env.NODE_ENV == 'test'){
-    dbconfig = db.testdb;
+    dbconfig = testdb;
     logging = false;
 }
 var sequelize = new Sequelize.Sequelize(dbconfig.database, dbconfig.user, dbconfig.password, {

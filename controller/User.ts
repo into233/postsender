@@ -1,9 +1,8 @@
 import { Context } from "koa";
-import { readFile, readFileSync, createReadStream, createWriteStream } from "fs";
+import { readFile, readFileSync, createReadStream, createWriteStream, statSync} from "fs";
 import path from 'path';
 import { User, findUser, createUser } from '../module/User';
 import sequelize from '../db';
-import { createHash } from "crypto";
 import Artical from "../module/Artical";
 import { Comment } from "../module/Comment";
 import { CommentPraise } from "../module/CommentPraise";
@@ -11,6 +10,7 @@ import { ArticalPraise } from "../module/ArticalPraise";
 import { Collect } from "../module/Collect";
 import { getUserByidForUser } from "../module/service/UserServiece";
 import { logger } from "../utils/logger";
+import { uploadfilepath } from "../config";
 
 
 
@@ -99,9 +99,9 @@ var POSTregist = async (ctx: Context, next: Function) => {
         } else
             ctx.redirect('/login');
     } else {
+        logger.error("create a Username " + uname + " username has already exists");
         ctx.response.type = 'json'
         ctx.response.body = { msg: 'username has already exists' };
-        logger.warn("create a Username " + uname + " username has already exists");
     }
     await next();
 }
@@ -124,6 +124,7 @@ var POSTlogin = async (ctx: Context, next: Function) => {
     var a = await findUser({ username: uname, password: upassword });
     if (a) {
         ctx.session.username = { uname };
+        ctx.session.userid = { userid:a.id };
         ctx.cookies.set('username', uname, {
             httpOnly: false,
         });
@@ -189,22 +190,27 @@ module.exports = {
         }
     }, 'POST /uploadfile': async (ctx: any, next: Function) => {
         const file: any = ctx.request.files.file;
-
-        // const reader = createReadStream(file.path);
-        // let filepath = path.join(__dirname, '../uploadfiles/' + `/${file.name}`);
-        // const upStream = createWriteStream(filepath);
-        // reader.pipe(upStream);
-
+        
         return ctx.body = '上传成功';
     },
     'POST /uploadfiles': async (ctx: Context, next: Function) => {
         const files: any = ctx.request.files;
         for (let file of files) {
             const reader = createReadStream(file.path);
-            let filepath = path.join(__dirname, '../uploadfiles/' + `/${file.name}`);
+            let filepath = path.join(uploadfilepath + `/${file.name}`);
             const upStream = createWriteStream(filepath);
             reader.pipe(upStream);
         }
         return ctx.body = '上传成功';
+    },
+    'POST /downloadfile': async (ctx: Context, next: Function) => {
+        let filenp = ctx.request.body.filename;
+        let filepath = uploadfilepath + filenp;
+        var stats = statSync(filepath);
+
+        ctx.set('Content-Type', 'application/octet-stream');
+        ctx.set('Content-Disposition', 'attachement;filename=' + filenp);
+        ctx.set('Content-Length', String(stats.size));
+        return ctx.body = createReadStream(filepath);
     }
 };

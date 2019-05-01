@@ -8,7 +8,7 @@ import * as path from 'path';
 import session from 'koa-session-minimal';
 import { logger } from './utils/logger';
 import { userlogin } from './utils/sessionck';
-
+import { uploadfilepath } from './config';
 const staticPath = './static'
 var app = new Koa();
 
@@ -18,7 +18,7 @@ app.use(koaBody({
     multipart: true,
     encoding: 'utf-8',
     formidable: {
-        uploadDir: __dirname + '/uploadfiles/',
+        uploadDir: uploadfilepath,
         keepExtensions: true,
         maxFileSize: 10 * 1024 * 1024,
         onFileBegin: function (name, file) {
@@ -26,6 +26,11 @@ app.use(koaBody({
         },
         hash: 'sha1',
         multiples: true,
+    },
+    onError:function(err, ctx){
+        logger.error(err.name, err.name);
+        ctx.type = 'json';
+        ctx.body = 'upload error, file\'s max size is 10mb';
     }
 }))
 
