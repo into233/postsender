@@ -12,7 +12,6 @@
 </head>
 
 <body>
-    <img src="../img/1.jpg">
     <div id="nav_bar">
         <h1>user name: {{username}}</h1>
     </div>
@@ -30,27 +29,13 @@
     </form>
     <div id="articals">
         <ul>
-            <!-- <artical-post v-for="(artical, index) in articals" :key="artical.id" v-bind:artical="artical">
-            </artical-post> -->
-            <li class="blog-post">
-                <h3>{{ artical.title }}</h3>
-                <p>{{ artical.content }} &nbsp;</p>
-                <p>赞:{{ artical.articalpraise }}</p>
-                <button v-on:click="Parse(artical.id)">
-                    {{ praised==true ? 'unpraise' : 'praise' }}
-                </button>
-                <button v-on:click="showComment(artical.id)">comments</button>
-                <button v-on:click="deleteArtical(artical.id)">delete</button><br /><br />
-                <div id="comment">
-                    <form id="add_comment" method="POST" v-on:submit.prevent="addComment">
-                        <textarea rows="8" v-model="content" name="content" cols="30" style="resize:none;"></textarea>
-                        <button type="submit">提交</button>
-                    </form>
-                    <br />
-                </div>
+            <artical-post v-for="(artical, index) in articals" :key="artical.id" v-bind:artical="artical">
+            </artical-post>
+            
         </ul>
     </div>
     <div id="footer"></div>
+    <img src="../img/1.jpg" width="1860" height="1060">
 </body>
 <script src="../js/wzqsq.js"></script>
 

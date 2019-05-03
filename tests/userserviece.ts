@@ -1,5 +1,5 @@
 import test from "ava";
-import { getUserByidForUser } from "../module/service/UserServiece";
+import { getUserByidForUser } from "../module/service/UserService";
 
 
 

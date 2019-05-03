@@ -2,7 +2,7 @@ import Artical from "../Artical";
 import { Op, or, CITEXT } from "sequelize";
 import { logger } from "../../utils/logger";
 import { User } from "../User";
-import { isUserPraised } from "./ArticalParse";
+import { isUserPraised } from "./ArticalParseService";
 
 //推送文章根据服务器中存的有事先做好的日期大于今天的文章, 而且一天一篇一直到19年八月都可以实现 山寨版推送
 var pushArticals = async (page: number | string, size: number | string, username: string | null) => {

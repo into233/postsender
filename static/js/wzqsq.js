@@ -9,50 +9,108 @@
 //   "CollectId": null
 // }]
 Vue.component('artical-post', {
-  props: ['artical'],
+  props: ['artical', 'comments'],
   //用户是否点过赞了
   data: function () {
     return {
-      praised: this.artical.isUserPraised
+      praised: this.artical.isUserPraised,
+      content: '',
+      show: false,
     }
   },
-template: `
+  template: `
   <li class="blog-post">
   <h3>{{ artical.title }}</h3>
   <p>{{ artical.content }} &nbsp;</p>
   <p>赞:{{ artical.articalpraise }}</p>
-  <button v-on:click="parse(artical.id)">
+  <button v-on:click="Parse(artical.id)">
       {{ praised==true ? 'unpraise' : 'praise' }}
   </button>
-  <button v-on:click="showcomment(artical.id)">comments</button>
-  <button v-on:click="delete(artical.id)">delete</button>
-</li>
+  <button v-on:click="show = !show;showComment(artical.id);">comments</button>
+  <button v-on:click="deleteArtical(artical.id)">delete</button><br /><br />
+  <div id="comment_wrap" v-if="show">
+      <div id="comment_write">
+          <form id="add_comment" method="POST" v-on:submit.prevent="addComment">
+              <textarea rows="8" v-model="content" name="content" cols="30"
+                  style="resize:none;"></textarea>
+              <button type="submit">提交</button>
+          </form>
+      </div>
+      <div id="comment_view">
+          <comment-post v-for="comment in comments" :key="comment.id" v-bind:comment="comment"></comment-post>
+      </div>
+      <br />
+  </div>
+  </li>
 `,
-methods: {
-  //TODO 删除, 点赞, 显示评论
-  Parse: function (aritcalid) {
-    var url = '/articalpraise';
-    if (this.praised) {
-      url = '/unPraiseArtical';
-    }
-    recvdata = axios.post(url, {
-      username: userconfig.username,
-      articalid: aritcalid
-    }).then((result) => {
-      if (result.data.msg == 'ok') {
-        this.artical.articalpraise += this.praised ? -1 : 1;
-        this.praised = !this.praised;
-      } else {
-        console.log(result.data.msg);
+  methods: {
+    //TODO 删除, 点赞, 显示评论
+    Parse: function (aritcalid) {
+      var url = '/articalpraise';
+      if (this.praised) {
+        url = '/unPraiseArtical';
       }
-    }).catch((err) => {
-      console.log(err);
-    });
-  },
-  showComment:function(articalid){
-    
+      recvdata = axios.post(url, {
+        username: userconfig.username,
+        articalid: aritcalid
+      }).then((result) => {
+        if (result.data.msg == 'ok') {
+          this.artical.articalpraise += this.praised ? -1 : 1;
+          this.praised = !this.praised;
+        } else {
+          this.artical.articalpraise += this.praised ? -1 : 1;
+          this.praised = !this.praised;
+          console.log(result.data.msg);
+        }
+      }).catch((err) => {
+        console.log(err);
+      });
+    },
+    showComment: function (articalid) {
+      senddata = {
+        articalid: articalid,
+        username: userconfig.username,
+      };
+      var that = this;
+      recvdata = axios.post('/getComments', senddata).then((result) => {
+        that.comments = result.data;
+
+      }).catch((err) => {
+        console.log(err);
+      });
+    },
   }
-}
+})
+
+Vue.component('comment-post', {
+  props: ['comment'],
+  template: `
+  <p>{{comment.content}} &nbsp;&nbsp;&nbsp;&nbsp;赞:{{comment.praisecount}}</p>
+  <button v-on:click="CommentParse(artical.id)">
+    {{ is_user_praise==true ? 'unpraise' : 'praise' }}
+  </button>
+  `,
+  methods: {
+    CommentParse: function (artical_id) {
+      var url = '/commentPraise';
+      if (this.praised) {
+        url = '/unPraiseComment';
+      }
+      recvdata = axios.post(url, {
+        username: userconfig.username,
+        articalid: aritcalid
+      }).then((result) => {
+        if (result.data.msg == 'ok') {
+          this.comment.praisecount += this.comment.ispraise ? -1 : 1;
+          this.comment.ispraise = !this.comment.ispraise;
+        } else {
+          console.log(result.data.msg);
+        }
+      }).catch((err) => {
+        console.log(err);
+      });
+    }
+  }
 })
 
 function getCookie(cname) {
@@ -71,7 +129,7 @@ var userconfig = new Vue({
   }
 })
 var addartical = new Vue({
-  name:'addartical',
+  name: 'addartical',
   el: '#add_artical',
   data: {
     title: '',
@@ -99,7 +157,7 @@ var addartical = new Vue({
 })
 
 var articals = new Vue({
-  name:'articals',
+  name: 'articals',
   el: '#articals',
   data: {
     articals: [],

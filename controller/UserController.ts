@@ -8,7 +8,7 @@ import { Comment } from "../module/Comment";
 import { CommentPraise } from "../module/CommentPraise";
 import { ArticalPraise } from "../module/ArticalPraise";
 import { Collect } from "../module/Collect";
-import { getUserByidForUser } from "../module/service/UserServiece";
+import { getUserByidForUser } from "../module/service/UserService";
 import { logger } from "../utils/logger";
 import { uploadfilepath } from "../config";
 

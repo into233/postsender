@@ -1,9 +1,9 @@
 import { Context } from "koa";
-import { pushArticals } from "../module/service/ArticalServiece";
+import { pushArticals } from "../module/service/ArticalService";
 import { createReadStream } from "fs";
 import Artical from "../module/Artical";
 import { logger } from "../utils/logger";
-import { parseArtical, isUserPraised, unPraiseArtical } from "../module/service/ArticalParse";
+import { parseArtical, isUserPraised, unPraiseArtical } from "../module/service/ArticalParseService";
 import { User, findUser } from "../module/User";
 import { ArticalPraise } from "../module/ArticalPraise";
 

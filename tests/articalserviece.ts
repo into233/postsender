@@ -1,5 +1,5 @@
 import test from "ava";
-import { pushArticals } from "../module/service/ArticalServiece";
+import { pushArticals } from "../module/service/ArticalService";
 
 test('articalserviece test', async t=>{
     var pa:Array<any> = await pushArticals(0, 10, null);
