@@ -27,10 +27,10 @@ template: `
   <button v-on:click="showcomment(artical.id)">comments</button>
   <button v-on:click="delete(artical.id)">delete</button>
 </li>
-    `,
+`,
 methods: {
   //TODO 删除, 点赞, 显示评论
-  parse: function (aritcalid) {
+  Parse: function (aritcalid) {
     var url = '/articalpraise';
     if (this.praised) {
       url = '/unPraiseArtical';
@@ -49,6 +49,9 @@ methods: {
       console.log(err);
     });
   },
+  showComment:function(articalid){
+    
+  }
 }
 })
 
@@ -62,13 +65,14 @@ function getCookie(cname) {
   return "";
 }
 var userconfig = new Vue({
-  el: '#nav-bar',
+  el: '#nav_bar',
   data: {
     username: getCookie('username'),
   }
 })
 var addartical = new Vue({
-  el: '#addartical',
+  name:'addartical',
+  el: '#add_artical',
   data: {
     title: '',
     content: '',
@@ -95,6 +99,7 @@ var addartical = new Vue({
 })
 
 var articals = new Vue({
+  name:'articals',
   el: '#articals',
   data: {
     articals: [],
