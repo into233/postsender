@@ -16,10 +16,13 @@ Vue.component('artical-post', {
       praised: this.artical.isUserPraised,
       content: '',
       show: false,
+      mcomments: this.comments,
+      msg: '',
+      isarticalShow:true,
     }
   },
   template: `
-  <li class="blog-post">
+  <li class="blog-post" v-if="isarticalShow">
   <h3>{{ artical.title }}</h3>
   <p>{{ artical.content }} &nbsp;</p>
   <p>赞:{{ artical.articalpraise }}</p>
@@ -30,27 +33,64 @@ Vue.component('artical-post', {
   <button v-on:click="deleteArtical(artical.id)">delete</button><br /><br />
   <div id="comment_wrap" v-if="show">
       <div id="comment_write">
-          <form id="add_comment" method="POST" v-on:submit.prevent="addComment">
+          <form id="add_comment" method="POST" v-on:submit.prevent="addComment(artical.id)">
               <textarea rows="8" v-model="content" name="content" cols="30"
                   style="resize:none;"></textarea>
               <button type="submit">提交</button>
+              <p>{{msg}}</p>
           </form>
       </div>
       <div id="comment_view">
-          <comment-post v-for="comment in comments" :key="comment.id" v-bind:comment="comment"></comment-post>
+          <comment-post v-for="comment in mcomments" :key="comment.id" v-bind:comment="comment" v-bind:artical="artical"></comment-post>
       </div>
       <br />
   </div>
   </li>
 `,
   methods: {
+    deleteArtical:function(articalid){
+      var url = '/deleteArtical';
+      axios.post(url, {articalid:articalid}).then((result)=>{
+        if(result.data.msg == 'ok'){
+          this.msg = 'success delete';
+          this.isarticalShow = false;
+        }else{
+          this.msg = 'unknown error';
+        }
+      }).catch((err)=>{
+        this.msg = err;
+        console.log(err);
+      })
+    },
+    addComment: function (articalid) {
+      var url = '/addComment'
+      if (this.content != undefined && this.content != '' && this.content.length >= 7) {
+        this.msg = '';
+        axios.post(url, {
+          articalid:articalid,
+          content:this.content,
+        }).then((result)=>{
+          if(result.data.msg == 'ok'){
+            this.msg = 'done';
+            this.showComment();
+          }else{
+            this.msg = 'unknown error';
+          }
+        }).catch((err)=>{
+          console.log(err);
+          this.msg = err;
+        })
+      } else {
+        this.msg = '评论不能为少于7个字符';
+      }
+    },
     //TODO 删除, 点赞, 显示评论
     Parse: function (aritcalid) {
       var url = '/articalpraise';
       if (this.praised) {
         url = '/unPraiseArtical';
       }
-      recvdata = axios.post(url, {
+      axios.post(url, {
         username: userconfig.username,
         articalid: aritcalid
       }).then((result) => {
@@ -67,14 +107,16 @@ Vue.component('artical-post', {
       });
     },
     showComment: function (articalid) {
+      this.mcomment = null;
+      if (!this.show)
+        return;
       senddata = {
         articalid: articalid,
         username: userconfig.username,
       };
       var that = this;
-      recvdata = axios.post('/getComments', senddata).then((result) => {
-        that.comments = result.data;
-
+      axios.post('/getComments', senddata).then((result) => {
+        that.mcomments = result.data;
       }).catch((err) => {
         console.log(err);
       });
@@ -83,26 +125,37 @@ Vue.component('artical-post', {
 })
 
 Vue.component('comment-post', {
-  props: ['comment'],
+  props: ['comment', 'artical'],
+  data: function () {
+    return {
+      content: this.comment.content,
+      isUserPraise: this.comment.isUserPraise,
+      commentPraise: this.comment.commentPraise,
+      articalid: this.artical.id,
+      mcomment: this.comment,
+    }
+  },
   template: `
-  <p>{{comment.content}} &nbsp;&nbsp;&nbsp;&nbsp;赞:{{comment.praisecount}}</p>
-  <button v-on:click="CommentParse(artical.id)">
-    {{ is_user_praise==true ? 'unpraise' : 'praise' }}
+  <div>
+  <p>{{content}} &nbsp;&nbsp;&nbsp;&nbsp;赞:{{commentPraise}}</p>
+  <button v-on:click="CommentParse(comment.id)">
+    {{ isUserPraise==true ? 'unpraise' : 'praise' }}
   </button>
+  </div>
   `,
   methods: {
-    CommentParse: function (artical_id) {
+    CommentParse: function (comentid) {
       var url = '/commentPraise';
-      if (this.praised) {
+      if (this.isUserPraise) {
         url = '/unPraiseComment';
       }
-      recvdata = axios.post(url, {
+      axios.post(url, {
         username: userconfig.username,
-        articalid: aritcalid
+        commentid: comentid,
       }).then((result) => {
         if (result.data.msg == 'ok') {
-          this.comment.praisecount += this.comment.ispraise ? -1 : 1;
-          this.comment.ispraise = !this.comment.ispraise;
+          this.commentPraise += this.isUserPraise ? -1 : 1;
+          this.isUserPraise = !this.isUserPraise;
         } else {
           console.log(result.data.msg);
         }
@@ -139,12 +192,13 @@ var addartical = new Vue({
   methods: {
     addartical: function () {
       var that = this;
-      recvdata = axios.post('/addArtical', {
+      axios.post('/addArtical', {
         title: this.title,
         content: this.content
       }).then((result) => {
         if (result.data.msg == 'ok') {
           that.msg = 'done';
+          articals.initdata();
         } else {
           that.msg = 'error';
         }
@@ -173,7 +227,7 @@ var articals = new Vue({
         username: userconfig.username
       };
       var that = this;
-      recvdata = axios.post('/getArticals', senddata).then((result) => {
+      axios.post('/getArticals', senddata).then((result) => {
         that.articals = result.data;
 
       }).catch((err) => {

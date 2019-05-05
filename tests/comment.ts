@@ -79,6 +79,11 @@ test("comment test", async t => {
         t.is(cma.id, data.artical.id);
         console.log('测试cmid 与 id');
         t.is(cmu.id, data.user.id);
+        console.log('测试article.getcomments');
+        var article_comments = await data.artical.getComments();
+        t.true(article_comments != null);
+        t.true(article_comments.length > 0);
+
 
         data.artical.destroy();
         data.comment.destroy();

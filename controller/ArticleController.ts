@@ -1,5 +1,5 @@
 import { Context } from "koa";
-import { pushArticals } from "../module/service/ArticalService";
+import { pushArticals, popArtical } from "../module/service/ArticalService";
 import { createReadStream } from "fs";
 import Artical from "../module/Artical";
 import { logger } from "../utils/logger";
@@ -59,6 +59,7 @@ var articalparse = async (ctx: Context, next: Function) => {
         ctx.body = { msg: 'err' };
         ctx.type = 'json';
     });
+    await next();
 }
 var unpraiseArtical = async (ctx: Context, next: Function) => {
     var username = ctx.request.body.username;
@@ -70,13 +71,13 @@ var unpraiseArtical = async (ctx: Context, next: Function) => {
     ctx.body = { msg: 'ok' };
     ctx.type = 'json';
 
-    return;
+    await next();
 }
 
 var AddArtical = async (ctx: Context, next: Function) => {
-    var username = ctx.session.username.uname;
     var title = ctx.request.body.title;
     var content = ctx.request.body.content;
+    var username = ctx.session.username;
 
     var user = await User.findOne({ where: { username: username } });
     if (user) {
@@ -84,10 +85,14 @@ var AddArtical = async (ctx: Context, next: Function) => {
         logger.info(`create a articl for user ${username}`);
         ctx.type = 'json';
         ctx.body = { msg: 'ok' };
+        await next();
+
     } else {
         logger.error(`faile to create a articl for user ${username} `);
         ctx.type = 'json';
         ctx.body = { msg: 'username not found' };
+        await next();
+
     }
 }
 var isUserPraise = async (ctx: Context, next: Function) => {
@@ -96,7 +101,27 @@ var isUserPraise = async (ctx: Context, next: Function) => {
     var isUserPraise = await isUserPraised(username, articalid);
 
     ctx.type = 'json';
-    ctx.body = {msg:isUserPraise};
+    ctx.body = { msg: isUserPraise };
+    await next();
+
+}
+var deleteArtical = async (ctx: Context, next: Function) => {
+    var userid = ctx.session.userid;
+    var articalid = ctx.request.body.articalid;
+
+    var user = await User.findOne({ where: { id: userid } });
+    var artical = await Artical.findOne({ where: { id: articalid } });
+    if (user && artical) {
+        if (popArtical(artical, user)) {
+            ctx.type = 'json';
+            ctx.body = { msg: 'ok' };
+            await next();
+        }
+    } else {
+        ctx.type = 'json';
+        ctx.body = { msg: 'error user or artical not found or no permission' };
+        await next();
+    }
 }
 
 export = {
@@ -107,4 +132,5 @@ export = {
     'POST /addArtical': AddArtical,
     'POST /unPraiseArtical': unpraiseArtical,
     'POST /isUserPraise': isUserPraise,
+    'POST /deleteArtical':deleteArtical,
 }

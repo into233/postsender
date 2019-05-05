@@ -1,5 +1,5 @@
 import sequelize from '../db';
-import { Model, HasOneGetAssociationMixin, INTEGER, STRING, HasManyAddAssociationMixin, HasManyCountAssociationsMixin } from "sequelize";
+import { Model, HasOneGetAssociationMixin, INTEGER, STRING, HasManyAddAssociationMixin, HasManyCountAssociationsMixin, HasManyGetAssociationsMixin } from "sequelize";
 import {User} from './User';
 import { Comment } from './Comment';
 import { Collect } from './Collect';
@@ -18,6 +18,7 @@ class Artical extends Model {
     public getUser: HasOneGetAssociationMixin<User>;//It's just a interface for "typescript", so DONT custom it
     public addComment: HasManyAddAssociationMixin<Comment, number>;
     public countArticalPraises:HasManyCountAssociationsMixin;
+    public getComments: HasManyGetAssociationsMixin<Comment>;
     articalpraise: number;
 };
 Artical.init({

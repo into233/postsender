@@ -25,7 +25,7 @@ class User extends Model {
 
     public getArticals: HasManyGetAssociationsMixin<Artical>;
     public countArticals: HasManyCountAssociationsMixin;
-    public hasArticals: HasManyHasAssociationMixin<Artical, number>;
+    public hasArtical: HasManyHasAssociationMixin<Artical, number>;
     public addArtical: HasManyAddAssociationMixin<Artical, number>;//haha this tm in the __prototype
     public createComment: HasManyCreateAssociationMixin<Comment>;
     public addComment: HasManyAddAssociationMixin<Comment, number>;

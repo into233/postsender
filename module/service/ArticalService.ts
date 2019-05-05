@@ -20,7 +20,7 @@ var pushArticals = async (page: number | string, size: number | string, username
         size = parseInt(size);
     }
     if (isNaN(size) || isNaN(page)) {
-        throw new Error('NaN nan is not a number');
+        throw new Error('NaN is not a number');
     }
     if (username) {
         var user = await User.findOne({ where: { username: username } });
@@ -79,4 +79,14 @@ var pushArticals = async (page: number | string, size: number | string, username
     }
 }
 
-export { pushArticals };
+//只有本人和管理员有权删除
+var popArtical = async(artical:Artical, user:User)=>{
+    if(user.hasArtical(artical) || user.id < 10){
+        await artical.destroy();
+        return true;
+    }else{
+        return false;
+    }
+}
+
+export { pushArticals, popArtical };

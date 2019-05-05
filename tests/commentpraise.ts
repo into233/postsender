@@ -24,9 +24,14 @@ test("comentpraise test", async t=>{
     t.true(user != null);
     t.true(artical != null);
     t.true(comment != null);
-    if(comment && user){
+    if(artical && comment && user){
+        await artical.addComment(comment);
+        
         var commentPraise =await createCommentPraise(comment, user);
         t.is(commentPraise.UserId, user.id);
+        var counts = await artical.getComments();
+        var count = await counts[0].countCommentPraises();
+        t.is(1, count);
         await commentPraise.destroy();
     }
     await user.destroy();

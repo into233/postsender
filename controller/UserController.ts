@@ -123,8 +123,8 @@ var POSTlogin = async (ctx: Context, next: Function) => {
 
     var a = await findUser({ username: uname, password: upassword });
     if (a) {
-        ctx.session.username = { uname };
-        ctx.session.userid = { userid:a.id };
+        ctx.session.username = uname;
+        ctx.session.userid = a.id;
         ctx.cookies.set('username', uname, {
             httpOnly: false,
         });

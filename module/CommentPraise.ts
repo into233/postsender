@@ -2,7 +2,7 @@ import sequelize from '../db';
 import Artical from './Artical';
 import { User } from './User';
 import { Comment } from './Comment';
-import { Model, INTEGER, HasOneGetAssociationMixin } from 'sequelize';
+import { Model, INTEGER, HasOneGetAssociationMixin, where } from 'sequelize';
 
 class CommentPraise extends Model {
     public id: number;
@@ -54,7 +54,11 @@ var createCommentPraise = async (comment: Comment, user: User) => {
         CommentId: comment.id,
     })
 };
+var deleteCommentPraise = async (userid: number, commentid: number) => {
+    return await CommentPraise.destroy({where:{
+        UserId: userid,
+        CommentId: commentid,
+    }})
+};
 
-
-
-export { CommentPraise, createCommentPraise };
+export { CommentPraise, createCommentPraise, deleteCommentPraise};

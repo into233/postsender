@@ -1,7 +1,7 @@
 import sequelize from '../db';
 import Artical from './Artical';
 import { User } from './User';
-import { Model, INTEGER, STRING, HasOneGetAssociationMixin, HasManyAddAssociationMixin } from 'sequelize';
+import { Model, INTEGER, STRING, HasOneGetAssociationMixin, HasManyAddAssociationMixin, HasManyCountAssociationsMixin } from 'sequelize';
 
 class Comment extends Model {
     public id: number;
@@ -13,6 +13,7 @@ class Comment extends Model {
     public getArtical: HasOneGetAssociationMixin<Artical>;
     public getUser: HasOneGetAssociationMixin<User>;
     public addCommentPraise: HasManyAddAssociationMixin<Comment, number>;
+    public countCommentPraises: HasManyCountAssociationsMixin;
 };
 
 
@@ -49,12 +50,13 @@ interface IComment {
     content: string;
     id?: number;
     UserId?: number;
-    ArticleId?: number;
+    ArticalId?: number;
 }
 
 
 var createComment = async (comment: IComment) => {
     return Comment.create({
+        ArticalId:comment.ArticalId,
         content: comment.content,
         praised: 0,
     })
