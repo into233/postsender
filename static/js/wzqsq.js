@@ -228,7 +228,7 @@ var articals = new Vue({
       };
       var that = this;
       axios.post('/getArticals', senddata).then((result) => {
-        that.articals = result.data;
+        that.articals = result.data.data;
 
       }).catch((err) => {
         console.log(err);
