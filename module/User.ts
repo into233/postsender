@@ -6,6 +6,7 @@ import { Comment } from './Comment';
 import { CommentPraise } from './CommentPraise';
 import { Collect } from './Collect';
 import { logger } from '../utils/logger';
+
 function md5(str: string): string {
     let mdg = createHash('md5');
     return mdg.update(str).digest('hex');
@@ -24,6 +25,7 @@ class User extends Model {
     public readonly updatedAt: Date;
 
     public getArticals: HasManyGetAssociationsMixin<Artical>;
+    public getCollects: HasManyGetAssociationsMixin<Collect>;
     public countArticals: HasManyCountAssociationsMixin;
     public hasArtical: HasManyHasAssociationMixin<Artical, number>;
     public addArtical: HasManyAddAssociationMixin<Artical, number>;//haha this tm in the __prototype

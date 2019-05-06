@@ -31,20 +31,20 @@ Vue.component('artical-post', {
   </button>
   <button v-on:click="show = !show;showComment(artical.id);">comments</button>
   <button v-on:click="deleteArtical(artical.id)">delete</button><br /><br />
-  <div id="comment_wrap" v-if="show">
-      <div id="comment_write">
-          <form id="add_comment" method="POST" v-on:submit.prevent="addComment(artical.id)">
-              <textarea rows="8" v-model="content" name="content" cols="30"
-                  style="resize:none;"></textarea>
-              <button type="submit">提交</button>
-              <p>{{msg}}</p>
-          </form>
-      </div>
-      <div id="comment_view">
-          <comment-post v-for="comment in mcomments" :key="comment.id" v-bind:comment="comment" v-bind:artical="artical"></comment-post>
-      </div>
-      <br />
-  </div>
+    <div id="comment_wrap" v-if="show">
+        <div id="comment_write">
+            <form id="add_comment" method="POST" v-on:submit.prevent="addComment(artical.id)">
+                <textarea rows="8" v-model="content" name="content" cols="30"
+                    style="resize:none;"></textarea>
+                <button type="submit">提交</button>
+                <p>{{msg}}</p>
+            </form>
+        </div>
+        <div id="comment_view">
+            <comment-post v-for="comment in mcomments" :key="comment.id" v-bind:comment="comment" v-bind:artical="artical"></comment-post>
+        </div>
+        <br />
+    </div>
   </li>
 `,
   methods: {
@@ -107,7 +107,7 @@ Vue.component('artical-post', {
       });
     },
     showComment: function (articalid) {
-      this.mcomment = null;
+      this.mcomments = null;
       if (!this.show)
         return;
       senddata = {

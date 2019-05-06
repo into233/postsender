@@ -30,9 +30,9 @@ var SpushArticles = async (ctx: Context, next: Function) => {
     var username = ctx.request.body.username;
 
 
-    await pushArticals(page, size, username).then((result) => {
+    await pushArticals(page, size, username).then((result:Array<Artical>) => {
         ctx.type = 'json';
-        ctx.body = result;
+        ctx.body = {size:result.length,data:result}
     }).catch((err) => {
         logger.error('pushArticles error:', err);
         ctx.type = 'json';

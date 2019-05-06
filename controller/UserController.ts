@@ -177,8 +177,8 @@ module.exports = {
     'POST /login': POSTlogin,
     'GET /welcome': Welcome,
     'GET /sync': sync,
-    'GET /getuser/:id': async (ctx: Context, next: Function) => {
-        var id = ctx.params.id;
+    'POST /getuser': async (ctx: Context, next: Function) => {
+        var id = ctx.request.body.id;
         var huser: any = { msg: "error" }
         try {
             huser = await getUserByidForUser(id);
@@ -188,7 +188,8 @@ module.exports = {
         } catch (error) {
             logger.error(error);
         }
-    }, 'POST /uploadfile': async (ctx: any, next: Function) => {
+    }, 
+    'POST /uploadfile': async (ctx: any, next: Function) => {
         const file: any = ctx.request.files.file;
         
         return ctx.body = '上传成功';
