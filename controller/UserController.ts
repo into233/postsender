@@ -1,5 +1,5 @@
 import { Context } from "koa";
-import { readFile, readFileSync, createReadStream, createWriteStream, statSync} from "fs";
+import { readFile, readFileSync, createReadStream, createWriteStream, statSync, fstat, unlink } from "fs";
 import path from 'path';
 import { User, findUser, createUser } from '../module/User';
 import sequelize from '../db';
@@ -8,45 +8,11 @@ import { Comment } from "../module/Comment";
 import { CommentPraise } from "../module/CommentPraise";
 import { ArticalPraise } from "../module/ArticalPraise";
 import { Collect } from "../module/Collect";
-import { getUserByidForUser } from "../module/service/UserService";
+import { getUserByidForUser, setUserHeadimg } from "../module/service/UserService";
 import { logger } from "../utils/logger";
 import { uploadfilepath } from "../config";
 
 
-
-
-var addUser = async (ctx: Context, next: Function) => {
-    var nuser = await createUser({
-        username: 'tion',
-        password: '123456',
-        gender: 'male',
-    });
-    var narticle = await Artical.create({
-        title: 'fjkdsa',
-        content: 'jfkdsakclxv',
-        imagedir: '/home/tion/node/static/image/ASDKFDLSOEIFLXLVIDOSOFOXSNFJDISO.jpg',
-    })
-    await nuser.addArtical(narticle);
-
-    var article = await Artical.findOne({ where: { title: 'fjkdsa' } });
-    if (article) {
-        var au = await article.getUser();
-        console.log(au.id);
-    }
-
-    console.log(nuser.id);
-}
-var cookietest = async (ctx: Context, next: Function) => {
-    var lastVisit = ctx.cookies.get('lastvisit');
-    ctx.cookies.set('lastvisit', new Date().toString(), { signed: false });
-    if (!lastVisit) {
-        ctx.response.set('header', ['Content-Type', 'text/plain']);
-        ctx.body = 'Welcome, first time vistor!';
-    } else {
-        ctx.response.set('header', ['Content-Type', 'text/plain']);
-        ctx.body = 'Welcome back! Nothing much changed since your last visit at ' + lastVisit + '.';
-    }
-}
 
 //return favicon.ico TODO:BUG 
 var favicon = async (ctx: Context, next: Function) => {
@@ -120,6 +86,10 @@ var POSTlogin = async (ctx: Context, next: Function) => {
         ctx.response.body = { msg: 'input valide' };
         return;
     }
+    if (ctx.session.user) {
+        ctx.body = `${ctx.session.username} 已经登录, 请勿重复登录`;
+        return;
+    }
 
     var a = await findUser({ username: uname, password: upassword });
     if (a) {
@@ -162,14 +132,19 @@ var sync = async (ctx: Context, next: Function) => {
         await Artical.findAll();
         await ArticalPraise.findAll();
         await Collect.findAll();
-
     })
     ctx.response.type = 'html';
     ctx.response.body = 'sync success';
 }
+
+var logoff = async (ctx: Context, next: Function) => {
+    ctx.session.username = null;
+    ctx.session.userid = null;
+    ctx.response.type = 'json';
+    ctx.body = { msg: 'ok' };
+}
+
 module.exports = {
-    'GET /addUser': addUser,
-    'GET /cookietest': cookietest,
     'GET /favicon.ico': favicon,
     'GET /login': GETlogin,
     'GET /signOn': GETregist,
@@ -177,9 +152,18 @@ module.exports = {
     'POST /login': POSTlogin,
     'GET /welcome': Welcome,
     'GET /sync': sync,
+    'POST /logoff': logoff,
+    'GET /logoff': logoff,
     'POST /getuser': async (ctx: Context, next: Function) => {
-        var id = ctx.request.body.id;
+        var id;
         var huser: any = { msg: "error" }
+        try {
+            id = ctx.request.body.id;
+        } catch (err) {
+            ctx.type = 'json';
+            ctx.body = huser;
+            logger.error("getuser userid not undefined " + err);
+        }
         try {
             huser = await getUserByidForUser(id);
             ctx.type = 'json';
@@ -188,10 +172,10 @@ module.exports = {
         } catch (error) {
             logger.error(error);
         }
-    }, 
+    },
     'POST /uploadfile': async (ctx: any, next: Function) => {
         const file: any = ctx.request.files.file;
-        
+
         return ctx.body = '上传成功';
     },
     'POST /uploadfiles': async (ctx: Context, next: Function) => {
@@ -213,5 +197,40 @@ module.exports = {
         ctx.set('Content-Disposition', 'attachement;filename=' + filenp);
         ctx.set('Content-Length', String(stats.size));
         return ctx.body = createReadStream(filepath);
+    },
+    'POST /uploadHeadimg': async (ctx: Context, next: Function) => {
+        try {
+            const userid = ctx.session.userid;
+            var file:any = ctx.request.files
+            if(file){
+                file = file.file;
+                if(file.name=='' || file.name == undefined || file.size == 0){
+                    ctx.type = 'json';
+                    ctx.body = {msg:'error no file upload!'};
+                    unlink(file.name, function(err){
+                        if(err){
+                            logger.error(err);
+                        }
+                        logger.info('0 size文件删除成功');
+                    });
+                    return;
+                }
+            }
+            const filename = file.name;
+            if (!(filename.endWith('.jpg') || filename.endWith('.png'))) {
+                ctx.body = { msg: 'error 上传的文件不是已.jpg | .png命名的' }
+                ctx.type = 'json';
+            } else {
+                if (await setUserHeadimg(userid, filename)) {
+                    ctx.body = { msg: 'ok', imgdir:filename };
+                    ctx.type = 'json';
+                } else {
+                    ctx.body = { msg: 'error: 保存失败, 用户不存在, 请重新登陆' };
+                    ctx.type = 'json';
+                }
+            }
+        } catch (err) {
+            logger.error(err);
+        }
     }
 };

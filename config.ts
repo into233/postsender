@@ -12,7 +12,7 @@ var testdb = {
     host: 'localhost'
 }
 
-var uploadfilepath = __dirname + '/uploadfiles';
+var uploadfilepath = __dirname + '/static/uploadfiles';
 
 
 export { db, testdb, uploadfilepath };

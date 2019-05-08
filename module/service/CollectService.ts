@@ -1,6 +1,6 @@
 import { User } from "../User";
 
-var getCollectByUserId = async(userid:number)=>{
+var getCollectsByUserId = async(userid:number)=>{
     var user = await User.findOne({where:{id:userid}});
     if(user){
         return await user.getCollects().toJSON();
@@ -9,4 +9,4 @@ var getCollectByUserId = async(userid:number)=>{
     }
 }
 
-export = {getCollectByUserId};
+export = {getCollectsByUserId};

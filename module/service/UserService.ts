@@ -1,4 +1,5 @@
 import { User } from "../User";
+import { logger } from "../../utils/logger";
 
 
 /** 
@@ -22,4 +23,21 @@ var getUserByidForUser = async(userid:number|string)=>{
     //DONT KNOW any questrion??
 }
 
-export {getUserByidForUser};
+/**
+ * 设置用户头像
+ */
+var setUserHeadimg = async(userid:number, imgpath:string)=>{
+    try{
+        var user = await User.findOne({where:{id:userid}});
+        if(user){
+            user.headimage = imgpath;
+            user.save();
+        }else{
+            return false;
+        }
+    }catch(err){
+        logger.error(err);
+    }
+}
+
+export {getUserByidForUser, setUserHeadimg};

@@ -1,5 +1,5 @@
 import { Context } from "koa";
-import { pushArticals, popArtical } from "../module/service/ArticalService";
+import { pushArticals, deleteArtical, getArticalfromCollect } from "../module/service/ArticalService";
 import { createReadStream } from "fs";
 import Artical from "../module/Artical";
 import { logger } from "../utils/logger";
@@ -7,13 +7,7 @@ import { parseArtical, isUserPraised, unPraiseArtical } from "../module/service/
 import { User, findUser } from "../module/User";
 import { ArticalPraise } from "../module/ArticalPraise";
 
-/**
- * 返回推送文章的service
- * 数据库事先存有一直到八月的数据, 拿到date<now的数据
- * 
- * @param ctx 
- * @param next 
- */
+
 
 var ajaxtest = async (ctx: Context, next: Function) => {
     ctx.response.type = 'html';
@@ -23,22 +17,51 @@ var wzqsq = async (ctx: Context, next: Function) => {
     ctx.response.type = 'html';
     ctx.response.body = createReadStream('./static/html/wzqsq.htm');
 }
-
+/**
+ * 返回推送文章的service
+ * 数据库事先存有一直到八月的数据, 拿到date<now的数据
+ * 
+ * @param ctx 
+ * @param next 
+ */
 var SpushArticles = async (ctx: Context, next: Function) => {
-    var size = ctx.request.body.size;
-    var page = ctx.request.body.page;
-    var username = ctx.request.body.username;
-
-
-    await pushArticals(page, size, username).then((result:Array<Artical>) => {
+    try {
+        var size = ctx.request.body.size;
+        var page = ctx.request.body.page;
+        var username = ctx.request.body.username;
+    } catch (err) {
+        logger.error("pushArticles error: " + err);
         ctx.type = 'json';
-        ctx.body = {size:result.length,data:result}
+        ctx.body = { msg: "error: user has not login" }
+    }
+
+    await pushArticals(page, size, username).then((result: Array<Artical>) => {
+        ctx.type = 'json';
+        ctx.body = { size: result.length, data: result }
     }).catch((err) => {
         logger.error('pushArticles error:', err);
         ctx.type = 'json';
         ctx.body = { msg: "some inputs is not a number or can not convert to a number" };
     });
     await next();
+}
+var pushArticalsByCollectid = async (ctx: Context, next: Function) => {
+    try {
+        var collectId = ctx.request.body.collectId;
+        var articalsJson: any = await getArticalfromCollect(collectId);
+        if (articalsJson) {
+            ctx.type = 'json';
+            ctx.body = { size: articalsJson.length, data:articalsJson }
+        }else{
+            ctx.type = 'json';
+            ctx.body = {size:0, data:{msg:'collectid not found'}}
+        }
+
+    } catch (err) {
+        logger.error("pushArticalsByCollectid error: " + err);
+        ctx.type = 'json';
+        ctx.body = {size:0, data:{msg:'collectid not found'}}
+    }
 }
 var articalparse = async (ctx: Context, next: Function) => {
     var username = ctx.request.body.username;
@@ -62,8 +85,13 @@ var articalparse = async (ctx: Context, next: Function) => {
     await next();
 }
 var unpraiseArtical = async (ctx: Context, next: Function) => {
-    var username = ctx.request.body.username;
-    var articalid = ctx.request.body.articalid;
+    try {
+        var username = ctx.request.body.username;
+        var articalid = ctx.request.body.articalid;
+    } catch (err) {
+        logger.error("unpraiseArtical error " + err)
+    }
+
 
     if (await isUserPraised(username, articalid)) {
         await unPraiseArtical(username, articalid);
@@ -75,9 +103,13 @@ var unpraiseArtical = async (ctx: Context, next: Function) => {
 }
 
 var AddArtical = async (ctx: Context, next: Function) => {
-    var title = ctx.request.body.title;
-    var content = ctx.request.body.content;
-    var username = ctx.session.username;
+    try {
+        var title = ctx.request.body.title;
+        var content = ctx.request.body.content;
+        var username = ctx.session.username;
+    } catch (err) {
+        logger.error("AddArtical" + err);
+    }
 
     var user = await User.findOne({ where: { username: username } });
     if (user) {
@@ -96,8 +128,14 @@ var AddArtical = async (ctx: Context, next: Function) => {
     }
 }
 var isUserPraise = async (ctx: Context, next: Function) => {
-    var username = ctx.request.body.username;
-    var articalid = ctx.request.body.articalid;
+    try {
+        var username = ctx.request.body.username;
+        var articalid = ctx.request.body.articalid;
+    } catch (err) {
+        logger.error("isUserPraise error " + err);
+        ctx.type = 'json';
+        ctx.body = { msg: "error username or articalid note found" };
+    }
     var isUserPraise = await isUserPraised(username, articalid);
 
     ctx.type = 'json';
@@ -105,14 +143,18 @@ var isUserPraise = async (ctx: Context, next: Function) => {
     await next();
 
 }
-var deleteArtical = async (ctx: Context, next: Function) => {
-    var userid = ctx.session.userid;
-    var articalid = ctx.request.body.articalid;
+var DeleteArtical = async (ctx: Context, next: Function) => {
+    try {
+        var userid = ctx.session.userid;
+        var articalid = ctx.request.body.articalid;
+    } catch (err) {
+        logger.error("deleteArtical" + err);
+    }
 
     var user = await User.findOne({ where: { id: userid } });
     var artical = await Artical.findOne({ where: { id: articalid } });
     if (user && artical) {
-        if (popArtical(artical, user)) {
+        if (deleteArtical(artical, user)) {
             ctx.type = 'json';
             ctx.body = { msg: 'ok' };
             await next();
@@ -132,5 +174,6 @@ export = {
     'POST /addArtical': AddArtical,
     'POST /unPraiseArtical': unpraiseArtical,
     'POST /isUserPraise': isUserPraise,
-    'POST /deleteArtical':deleteArtical,
+    'POST /deleteArtical': DeleteArtical,
+    'POST /pushArticalsByCollectid':pushArticalsByCollectid,
 }
