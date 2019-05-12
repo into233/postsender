@@ -1,12 +1,13 @@
 import { Context } from "koa";
-import { pushArticals, deleteArtical, getArticalfromCollect } from "../module/service/ArticalService";
+import { pushArticals, deleteArtical, getArticalfromCollect, pushPusherArtical } from "../module/service/ArticalService";
 import { createReadStream } from "fs";
 import Artical from "../module/Artical";
 import { logger } from "../utils/logger";
 import { parseArtical, isUserPraised, unPraiseArtical } from "../module/service/ArticalParseService";
 import { User } from "../module/User";
-import { getDefaultCollect } from "../module/service/CollectService";
+import { getDefaultCollect, getArticalsFromCollect } from "../module/service/CollectService";
 import { Collect } from "../module/Collect";
+import { verifyVariable } from "../utils/utils";
 
 
 
@@ -52,16 +53,16 @@ var pushArticalsByCollectid = async (ctx: Context, next: Function) => {
         var articalsJson: any = await getArticalfromCollect(collectId);
         if (articalsJson) {
             ctx.type = 'json';
-            ctx.body = { size: articalsJson.length, data:articalsJson }
-        }else{
+            ctx.body = { size: articalsJson.length, data: articalsJson }
+        } else {
             ctx.type = 'json';
-            ctx.body = {size:0, data:{msg:'collectid not found'}}
+            ctx.body = { size: 0, data: { msg: 'collectid not found' } }
         }
 
     } catch (err) {
         logger.error("pushArticalsByCollectid error: " + err);
         ctx.type = 'json';
-        ctx.body = {size:0, data:{msg:'collectid not found'}}
+        ctx.body = { size: 0, data: { msg: 'collectid not found' } }
     }
 }
 var articalparse = async (ctx: Context, next: Function) => {
@@ -112,7 +113,7 @@ var AddArtical = async (ctx: Context, next: Function) => {
         var content = ctx.request.body.content;
         var username = ctx.session.username;
         var collectid = ctx.request.body.collectid || '';
-        if(ctx.request.files)
+        if (ctx.request.files)
             imgfile = ctx.request.files.file.name;
     } catch (err) {
         logger.error("AddArtical" + err);
@@ -122,18 +123,18 @@ var AddArtical = async (ctx: Context, next: Function) => {
 
     var user = await User.findOne({ where: { username: username } });
     if (user) {
-        var artical = await user.createArtical({ title: title, content: content, imagedir:imgfile||'defaultImage.jpg'});
-        if(collectid == ''){
+        var artical = await user.createArtical({ title: title, content: content, imagedir: imgfile || 'defaultImage.jpg' });
+        if (collectid == '') {
             var defaultCollect = await getDefaultCollect(user.id);
-            if(defaultCollect && artical){
+            if (defaultCollect && artical) {
                 defaultCollect.addArtical(artical);
             }
-        }else{
-            var collect = await Collect.findOne({where:{id:collectid}});
-            if(collect){
+        } else {
+            var collect = await Collect.findOne({ where: { id: collectid } });
+            if (collect) {
                 collect.addArtical(artical);
-            }else{
-                var defaultcollect = await Collect.create({UserId:user.id, title:"默认文集"});
+            } else {
+                var defaultcollect = await Collect.create({ UserId: user.id, title: "默认文集" });
                 defaultcollect.addArtical(artical);
                 return;
             }
@@ -151,13 +152,13 @@ var AddArtical = async (ctx: Context, next: Function) => {
     }
 }
 var isUserPraise = async (ctx: Context, next: Function) => {
-    try {
-        var username = ctx.request.body.username;
-        var articalid = ctx.request.body.articalid;
-    } catch (err) {
-        logger.error("isUserPraise error " + err);
-        ctx.type = 'json';
-        ctx.body = { msg: "error username or articalid note found" };
+    var username = ctx.request.body.username;
+    var articalid = ctx.request.body.articalid;
+    if (!verifyVariable(username, articalid)) {
+        logger.error("isUserPraise error: username or articalid  not found");
+        ctx.myerr = "isUserPraise error: articalid or username not found";
+        await next();
+        return;
     }
     var isUserPraise = await isUserPraised(username, articalid);
 
@@ -176,17 +177,48 @@ var DeleteArtical = async (ctx: Context, next: Function) => {
 
     var user = await User.findOne({ where: { id: userid } });
     var artical = await Artical.findOne({ where: { id: articalid } });
-    if (user && artical) {
-        if (deleteArtical(artical, user)) {
-            ctx.type = 'json';
-            ctx.body = { msg: 'ok' };
-            await next();
+    if (user) {
+        if (artical) {
+            if (deleteArtical(artical, user)) {
+                ctx.type = 'json';
+                ctx.body = { msg: 'ok' };
+                await next();
+            }
+        } else {
+
         }
     } else {
         ctx.type = 'json';
         ctx.body = { msg: 'error user or artical not found or no permission' };
         await next();
     }
+}
+var pushPusherArticalContorllser = async (ctx: Context, next: Function) => {
+    var userid = ctx.request.body.userid;
+    var size = ctx.request.body.size;
+    var page = ctx.request.body.page;
+
+    var articals: Array<any> = await pushPusherArtical(parseInt(page), parseInt(size), parseInt(userid));
+    try {
+        ctx.body = { size: articals.length, data: articals };
+        ctx.type = 'json';
+    } catch (err) {
+        ctx.myerr = 'error articals not found';
+    }
+}
+var getArticalsFromCollectController = async(ctx:Context, next:Function)=>{
+    var userid = ctx.request.body.userid;
+    var collectid = ctx.request.body.collectid;
+    if(!verifyVariable(userid, collectid)){
+        ctx.myerr = 'getArticalsFromCollectController error: userid or collectid not found';
+        await next();
+        return;
+    }
+    var articles = await getArticalsFromCollect(userid, collectid);
+    ctx.body = {size:articles.length, data:articles};
+    ctx.type = 'json';
+    await next();
+
 }
 
 export = {
@@ -198,5 +230,7 @@ export = {
     'POST /unPraiseArtical': unpraiseArtical,
     'POST /isUserPraise': isUserPraise,
     'POST /deleteArtical': DeleteArtical,
-    'POST /pushArticalsByCollectid':pushArticalsByCollectid,
+    'POST /pushArticalsByCollectid': pushArticalsByCollectid,
+    'POST /pushPusherArtical': pushPusherArticalContorllser,
+    'POST /getArticalsFromCollect': getArticalsFromCollectController, 
 }

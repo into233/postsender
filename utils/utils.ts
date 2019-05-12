@@ -7,4 +7,13 @@ var getJsonFromModelArr = async (modelarr:Array<any>,addfunc:Function)=>{
     return Jsonarr;
 }
 
-export {getJsonFromModelArr};
+var verifyVariable = function(...args: any[]){
+    for(var i of args){
+        if(i == undefined || i == null){
+            return false;
+        }
+    }
+    return true;
+}
+
+export {getJsonFromModelArr, verifyVariable};

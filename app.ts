@@ -51,9 +51,9 @@ app.use(async (ctx: Koa.Context, next: Function) => {
     await next();
     var time: number = Date.now() - start;
     //这里相当于一个中间件, 判断ctx.myerr是否为null, 如果不为null, 则返回数据为json, 返回内容为myerr,并将myerr设为空,以便之后的判断
-    if(ctx.err != null){
+    if(ctx.myerr != null){
         ctx.type = 'json';
-        ctx.body = ctx.myerr;
+        ctx.body = {msg:ctx.myerr};
         logger.error("error:" +　ctx.myerr);
         ctx.myerr = null;
     }

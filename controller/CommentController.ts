@@ -6,6 +6,7 @@ import { isUserPraiseComment } from "../module/service/CommentPraiseService";
 import { createComment, Comment } from "../module/Comment";
 import { createCommentPraise, deleteCommentPraise, CommentPraise } from "../module/CommentPraise";
 import { logger } from "../utils/logger";
+import { pushAllUsergetComments } from "../module/service/CommentService";
 
 
 var getComments = async (ctx: Context, next: Function) => {
@@ -24,7 +25,6 @@ var getComments = async (ctx: Context, next: Function) => {
         var commentJson:Array<any> = await getJsonFromModelArr(comments, async (model: any, item: any) => {
             item.commentPraise = await model.countCommentPraises();
             item.isUserPraise = await isUserPraiseComment(userid, model.id);
-            item.praised = null;
             var commentUserId = item.UserId;
             var user = await User.findOne({where:{id:commentUserId}});
             if(user){
@@ -114,8 +114,6 @@ var unPraiseComment = async (ctx: Context, next: Function) => {
         ctx.type = 'json';
         ctx.body = { msg: 'error: commentid or userid not add' };
     }
-    
-    
     if(userid && commentid){
         await deleteCommentPraise(userid,commentid);
         logger.info('user delete comment praise');
@@ -127,9 +125,27 @@ var unPraiseComment = async (ctx: Context, next: Function) => {
         ctx.body = {msg:'error cannot find user or comment'};
     }
 }
+var pushAllUsergetCommentsController = async (ctx: Context, next: Function) => {
+    var userid = ctx.request.body.userid;
+    if(userid != undefined && userid != null){
+        var comments = await pushAllUsergetComments(parseInt(userid));
+        if(comments){
+            ctx.body = {size:comments.length, data:comments};
+            ctx.type = 'json';
+        }else{
+            ctx.myerr = 'unknown error';
+            return;
+        }
+    }else{
+        ctx.myerr = 'userid not found';
+        return;
+    }
+}
+
 export = {
     'POST /getComments': getComments,
     'POST /addComment': addComment,
     'POST /commentPraise':commentPraise,
     'POST /unPraiseComment':unPraiseComment,
+    'POST /pushAllUsergetComments':pushAllUsergetCommentsController
 }

@@ -1,38 +1,48 @@
 import { Context } from "koa";
 import { logger } from "../utils/logger";
 import { Star } from "../module/Star";
+import { verifyVariable } from "../utils/utils";
 
 
 var addStar = async (ctx: Context, next: Function) => {
-    try {
-        var articleid = ctx.request.body.articleid;
-        var userid = ctx.session.userid;
-        var collectid = ctx.request.body.collectid;
-    } catch (err) {
+    var articleid = ctx.request.body.articleid;
+    var userid = ctx.request.body.userid;
+    var collectid = ctx.request.body.collectid;
+    if (!verifyVariable(articleid, userid, collectid)) {
         logger.error("addStar error: articleid or userid or collectid not found");
         ctx.myerr = "addStar error: articleid or userid or collectid not found";
+        await next();
         return;
     }
-    Star.create({ ArticleId: articleid, CollectId: collectid, UserId: userid });
+
+    if (await Star.findOne({ where: { ArticalId: articleid, CollectId: collectid, UserId: userid } })) {
+        ctx.type = 'json';
+        ctx.body = {msg:'error: star has already exist'};
+        logger.error('error: star has already exist');
+        await next();
+        return;
+    }
+    Star.create({ ArticalId: articleid, CollectId: collectid, UserId: userid });
     ctx.type = 'json';
-    ctx.body = 'ok';
+    ctx.body = {msg:'ok'};
     await next();
 }
 var delStar = async (ctx: Context, next: Function) => {
-    try {
-        var articleid = ctx.request.body.articleid;
-        var userid = ctx.session.userid;
-        var collectid = ctx.request.body.collectid;
-    } catch (err) {
-        logger.error("delStar error: articleid or userid or collectid not found");
-        ctx.myerr = "delStar error articleid or userid or collectid not found";
+
+    var articleid = ctx.request.body.articleid;
+    var userid = ctx.session.userid;
+    var collectid = ctx.request.body.collectid;
+    if (!verifyVariable(articleid, userid, collectid)) {
+        logger.error("addStar error: articleid or userid or collectid not found");
+        ctx.myerr = "addStar error: articleid or userid or collectid not found";
+        await next();
         return;
     }
-    var star = await Star.findOne({ where: { ArticleId: articleid, CollectId: collectid, UserId: userid } });
+    var star = await Star.findOne({ where: { ArticalId: articleid, CollectId: collectid, UserId: userid } });
     if (star) {
         star.destroy();
         ctx.type = 'json';
-        ctx.body = 'ok';
+        ctx.body = {msg:'ok'};
     } else {
         ctx.myerr = 'delerror star not found';
         return;
