@@ -116,7 +116,7 @@ Vue.component('artical-post', {
       };
       var that = this;
       axios.post('/getComments', senddata).then((result) => {
-        that.mcomments = result.data;
+        that.mcomments = result.data.data;
       }).catch((err) => {
         console.log(err);
       });

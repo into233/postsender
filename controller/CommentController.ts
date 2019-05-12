@@ -9,20 +9,34 @@ import { logger } from "../utils/logger";
 
 
 var getComments = async (ctx: Context, next: Function) => {
-    var username = ctx.request.body.username;
-    var articalid = ctx.request.body.articalid;
-
-    var user: any = await User.findOne({ where: { username: username } });
+    try{
+        var userid = ctx.session.userid;
+        var articalid = ctx.request.body.articalid;
+    }catch(err){
+        logger.error("getComments error: " + err);
+        ctx.type = 'json';
+        ctx.body = { msg: 'error: user or artical not add' };
+    }
+    
     var artical = await Artical.findOne({ where: { id: articalid } });
-    if (artical && user != null) {
+    if (artical && userid != null) {
         var comments = await artical.getComments({order:[['createdAt','DESC'],]});
-        var commentJson = await getJsonFromModelArr(comments, async (model: any, item: any) => {
+        var commentJson:Array<any> = await getJsonFromModelArr(comments, async (model: any, item: any) => {
             item.commentPraise = await model.countCommentPraises();
-            item.isUserPraise = await isUserPraiseComment(user.id, model.id);
+            item.isUserPraise = await isUserPraiseComment(userid, model.id);
             item.praised = null;
+            var commentUserId = item.UserId;
+            var user = await User.findOne({where:{id:commentUserId}});
+            if(user){
+                item.username = user.username;
+                item.headimage = user.headimage;
+            }else{
+                item.username = "admin";
+                item.headimage = "defaultHead.jpg";
+            }
         })
         ctx.type = 'json';
-        ctx.body = commentJson;
+        ctx.body = {size: commentJson.length, data:commentJson};
         await next();
     } else {
         ctx.type = 'json';
@@ -31,9 +45,15 @@ var getComments = async (ctx: Context, next: Function) => {
 }
 
 var addComment = async (ctx: Context, next: Function) => {
-    var articalid = ctx.request.body.articalid;
-    var content = ctx.request.body.content;
-
+    try{
+        var articalid = ctx.request.body.articalid;
+        var content = ctx.request.body.content;
+    }catch(error){
+        logger.error("addComment not found id or content" + error);
+        ctx.type = 'json';
+        ctx.body = { msg: 'error: id or content not add' };
+    }
+    
     var username = ctx.session.username;
     if (username) {
         var user = await User.findOne({ where: { username: username } });
@@ -54,8 +74,15 @@ var addComment = async (ctx: Context, next: Function) => {
     }
 }
 var commentPraise = async (ctx: Context, next: Function) => {
-    var commentid = ctx.request.body.commentid;
-    var userid = ctx.session.userid;
+    
+    try{
+        var commentid = ctx.request.body.commentid;
+        var userid = ctx.session.userid;
+    }catch(error){
+        logger.error("commentPraise not found commentid or userid" + error);
+        ctx.type = 'json';
+        ctx.body = { msg: 'error:commentid or userid not add' };
+    }
     
     var user = await User.findOne({where:{id:userid}});
     var comment = await Comment.findOne({where:{id:commentid}});
@@ -79,8 +106,14 @@ var commentPraise = async (ctx: Context, next: Function) => {
 }
 
 var unPraiseComment = async (ctx: Context, next: Function) => {
-    var commentid = ctx.request.body.commentid;
-    var userid = ctx.session.userid;
+    try{
+        var commentid = ctx.request.body.commentid;
+        var userid = ctx.session.userid;
+    }catch(error){
+        logger.error("unPraiseComment not found commentid or userid" + error);
+        ctx.type = 'json';
+        ctx.body = { msg: 'error: commentid or userid not add' };
+    }
     
     
     if(userid && commentid){

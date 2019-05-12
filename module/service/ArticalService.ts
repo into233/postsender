@@ -90,4 +90,5 @@ var getArticalsByCollectId = async(collectid:number)=>{
 }
 
 
+
 export { pushArticals, deleteArtical, getArticalfromCollect, getArticalsByCollectId};

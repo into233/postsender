@@ -4,8 +4,9 @@ import { createReadStream } from "fs";
 import Artical from "../module/Artical";
 import { logger } from "../utils/logger";
 import { parseArtical, isUserPraised, unPraiseArtical } from "../module/service/ArticalParseService";
-import { User, findUser } from "../module/User";
-import { ArticalPraise } from "../module/ArticalPraise";
+import { User } from "../module/User";
+import { getDefaultCollect } from "../module/service/CollectService";
+import { Collect } from "../module/Collect";
 
 
 
@@ -69,7 +70,7 @@ var articalparse = async (ctx: Context, next: Function) => {
 
     if (await isUserPraised(username, articalid)) {
         logger.info('该用户已点过此文章的赞');
-        ctx.body = { msg: 'err' };
+        ctx.body = { msg: 'err 该用户已点过此文章的赞' };
         ctx.type = 'json';
         return;
     }
@@ -79,7 +80,7 @@ var articalparse = async (ctx: Context, next: Function) => {
         ctx.type = 'json';
     }).catch((err) => {
         logger.error(err);
-        ctx.body = { msg: 'err' };
+        ctx.body = { msg: 'err 服务器出错' };
         ctx.type = 'json';
     });
     await next();
@@ -90,6 +91,8 @@ var unpraiseArtical = async (ctx: Context, next: Function) => {
         var articalid = ctx.request.body.articalid;
     } catch (err) {
         logger.error("unpraiseArtical error " + err)
+        ctx.body = { msg: 'error username or articalid not found' };
+        ctx.type = 'json';
     }
 
 
@@ -103,22 +106,42 @@ var unpraiseArtical = async (ctx: Context, next: Function) => {
 }
 
 var AddArtical = async (ctx: Context, next: Function) => {
+    var imgfile;
     try {
         var title = ctx.request.body.title;
         var content = ctx.request.body.content;
         var username = ctx.session.username;
+        var collectid = ctx.request.body.collectid || '';
+        if(ctx.request.files)
+            imgfile = ctx.request.files.file.name;
     } catch (err) {
         logger.error("AddArtical" + err);
+        ctx.myerr = "addartical error";
+        return;
     }
 
     var user = await User.findOne({ where: { username: username } });
     if (user) {
-        await user.createArtical({ title: title, content: content });
+        var artical = await user.createArtical({ title: title, content: content, imagedir:imgfile||'defaultImage.jpg'});
+        if(collectid == ''){
+            var defaultCollect = await getDefaultCollect(user.id);
+            if(defaultCollect && artical){
+                defaultCollect.addArtical(artical);
+            }
+        }else{
+            var collect = await Collect.findOne({where:{id:collectid}});
+            if(collect){
+                collect.addArtical(artical);
+            }else{
+                var defaultcollect = await Collect.create({UserId:user.id, title:"默认文集"});
+                defaultcollect.addArtical(artical);
+                return;
+            }
+        }
         logger.info(`create a articl for user ${username}`);
         ctx.type = 'json';
         ctx.body = { msg: 'ok' };
         await next();
-
     } else {
         logger.error(`faile to create a articl for user ${username} `);
         ctx.type = 'json';

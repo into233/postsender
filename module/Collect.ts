@@ -1,7 +1,7 @@
 import sequelize from '../db';
 import Artical from './Artical';
 import { User } from './User';
-import { Model, INTEGER, HasOneGetAssociationMixin, HasManyGetAssociationsMixin, STRING } from 'sequelize';
+import { Model, INTEGER, HasOneGetAssociationMixin, HasManyGetAssociationsMixin, STRING, HasManyAddAssociationMixin, HasManyCountAssociationsMixin } from 'sequelize';
 
 class Collect extends Model {
     public id: number;
@@ -11,8 +11,10 @@ class Collect extends Model {
     public readonly createdAt: Date;
     public readonly updatedAt: Date;
 
+    public addArtical: HasManyAddAssociationMixin<Artical, number>;
     public getArticals: HasManyGetAssociationsMixin<Artical>;
     public getUser: HasOneGetAssociationMixin<User>;
+    public countArticals: HasManyCountAssociationsMixin;
 };
 
 Collect.init({

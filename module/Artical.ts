@@ -4,6 +4,8 @@ import {User} from './User';
 import { Comment } from './Comment';
 import { Collect } from './Collect';
 import { ArticalPraise } from './ArticalPraise';
+import { Star } from './Star';
+import { Follower } from './Follower';
 
 class Artical extends Model {
     public id: number;
@@ -56,6 +58,12 @@ Collect.hasMany(Artical, { constraints: false });
 Artical.belongsTo(Collect);
 User.hasMany(Collect, {constraints:false});
 Collect.belongsTo(User);
+
+Collect.hasMany(Star, {constraints:false});
+Artical.hasMany(Star, {constraints:false});
+User.hasMany(Star, {constraints:false});
+
+User.hasMany(Follower, {constraints:false});
 
 
 export default Artical;

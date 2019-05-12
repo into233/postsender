@@ -4,6 +4,8 @@ import { CommentPraise } from "../module/CommentPraise";
 import Artical from "../module/Artical";
 import { User } from "../module/User";
 import { ArticalPraise } from "../module/ArticalPraise";
+import { Follower } from "../module/Follower";
+import { Star } from "../module/Star";
 
 async function sync() {
     await sequelize.sync().then();
@@ -12,6 +14,8 @@ async function sync() {
     await User.findAll();
     await Artical.findAll();
     await ArticalPraise.findAll();
+    await Follower.findAll();
+    await Star.findAll();
 }
 
 

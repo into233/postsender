@@ -11,6 +11,8 @@ import { Collect } from "../module/Collect";
 import { getUserByidForUser, setUserHeadimg } from "../module/service/UserService";
 import { logger } from "../utils/logger";
 import { uploadfilepath } from "../config";
+import { isfollower } from "../module/Follower";
+import { where } from "sequelize/types";
 
 
 
@@ -44,21 +46,20 @@ var POSTregist = async (ctx: Context, next: Function) => {
     var uname = ctx.request.body.username;
     var upassword = ctx.request.body.password;
     var ugender = ctx.request.body.gender || '';
+    var phonenumber = ctx.request.body.phonenumber || null;
 
     //TODO: more judgements
     if (!uname || !upassword) {
         ctx.response.body = { msg: 'input valide' };
         return;
     }
-
-
-    var newUserConfig = { username: uname, password: upassword, gender: ugender };
+    var newUserConfig = { username: uname, password: upassword, gender: ugender, phonenumber:phonenumber };
 
     if (!(await User.findOne({ where: { username: uname } }))) {
         var newuser = await createUser(newUserConfig);
+        Collect.create({UserId:newuser.id, title:"默认文集"});
         logger.info("create a User " + newuser.id + " " + newuser.username + " " + newuser.gender);
         ctx.cookies.set('username', newUserConfig.username);
-
         if (ctx.request.body.android) {
             ctx.response.type = 'json';
             ctx.response.body = { msg: 'regist success' };
@@ -166,11 +167,13 @@ module.exports = {
         }
         try {
             huser = await getUserByidForUser(id);
+            huser.isfollower = await isfollower(huser.id, ctx.session.userid);
             ctx.type = 'json';
             ctx.body = huser;
             logger.info("send data" + huser.username);
         } catch (error) {
             logger.error(error);
+            ctx.myerr="cannot find user";
         }
     },
     'POST /uploadfile': async (ctx: any, next: Function) => {
