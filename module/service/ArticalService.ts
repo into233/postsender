@@ -106,6 +106,8 @@ var wrapArtical = async (artical: Artical, username: string | null) => {
     } else {
         articaljson.isUserPraised = false;
     }
+    //TODO:many other wrapper
+    articaljson.starCount = await artical.countStars();
     return articaljson;
 }
 

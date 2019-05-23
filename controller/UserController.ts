@@ -92,7 +92,7 @@ var POSTlogin = async (ctx: Context, next: Function) => {
         return;
     }
 
-    var a = await findUser({ username: uname, password: upassword });
+    var a:any = await findUser({ username: uname, password: upassword });
     if (a) {
         ctx.session.username = uname;
         ctx.session.userid = a.id;
@@ -103,13 +103,17 @@ var POSTlogin = async (ctx: Context, next: Function) => {
         logger.info(`${a.username} was login!`);
         if (ctx.request.body.android)//如果是安卓app则总是以json返回, 具体还要自己实现;
         {
+            var aa = a.toJSON();
+            delete aa.password;
+            aa.collectCount = await a.countCollects();
+            aa.articleCount = await a.countArticals();
             ctx.type = 'json';
-            ctx.response.body = { msg: 'login success' };
+            ctx.response.body = { msg: 'login success', data:aa};
         } else
             ctx.redirect('/welcome');
     } else {
         ctx.response.type = 'json';
-        ctx.response.body = { msg: 'wrong password or username' };
+        ctx.response.body = { msg: 'wrong password or username', data:{}};
     }
     await next();
 }

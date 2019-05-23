@@ -14,6 +14,8 @@ var getUserByidForUser = async(userid:number|string)=>{
         }
         var userjson:any = nuser.toJSON();
         delete userjson.password;
+        userjson.collectCount = await nuser.countCollects();
+        userjson.articleCount = await nuser.countArticals();
 
         return userjson;
     }catch(err){

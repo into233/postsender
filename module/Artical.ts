@@ -21,6 +21,7 @@ class Artical extends Model {
     public addComment: HasManyAddAssociationMixin<Comment, number>;
     public countArticalPraises:HasManyCountAssociationsMixin;
     public getComments: HasManyGetAssociationsMixin<Comment>;
+    public countStars:HasManyCountAssociationsMixin;
 
     //在service里添加的
     articalpraise: number;
