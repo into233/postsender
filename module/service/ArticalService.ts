@@ -108,6 +108,7 @@ var wrapArtical = async (artical: Artical, username: string | null) => {
     }
     //TODO:many other wrapper
     articaljson.starCount = await artical.countStars();
+    articaljson.commentCount = await artical.countComments();
     return articaljson;
 }
 

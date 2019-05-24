@@ -52,6 +52,7 @@ var addComment = async (ctx: Context, next: Function) => {
         logger.error("addComment not found id or content" + error);
         ctx.type = 'json';
         ctx.body = { msg: 'error: id or content not add' };
+        return;
     }
     
     var username = ctx.session.username;
@@ -61,6 +62,7 @@ var addComment = async (ctx: Context, next: Function) => {
             await createComment({ content: content, UserId:user.id, ArticalId:articalid });
             ctx.type = 'json';
             ctx.body = { msg: 'ok' };
+            await next();
         } else {
             throw new Error("user not found");
         }
@@ -68,8 +70,10 @@ var addComment = async (ctx: Context, next: Function) => {
         if (ctx.request.body.android) {
             ctx.type = 'json';
             ctx.body = { msg: 'error: please login' };
+            await next();
         } else {
             ctx.redirect('/login');
+            await next();
         }
     }
 }

@@ -48,16 +48,16 @@ Comment.belongsTo(User);
 
 interface IComment {
     content: string;
-    id?: number;
     UserId?: number;
     ArticalId?: number;
 }
 
 
 var createComment = async (comment: IComment) => {
-    return Comment.create({
+    return await Comment.create({
         ArticalId:comment.ArticalId,
         content: comment.content,
+        UserId: comment.UserId,
         praised: 0,
     })
 };
