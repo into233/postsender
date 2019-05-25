@@ -6,10 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible">
     <title>singon</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@0.12.0/dist/axios.min.js"></script>
+
 </head>
 
 <body>
-    <form action="/signOn" method="POST">
+    <form  action="/signOn" method="POST">
         <h1>WZQSQ login test</h1>
         <h2>userName</h2>
         <input type="text" name="username"><br />
@@ -18,8 +21,49 @@
         <h2>repassword</h2>
         <input type="password" name="repassword"><br /><br />
         <h2>gender</h2>
-        <h3>male<input type="radio" name="gender" value='male' checked>female<input type="radio" name="gender" text='female' value="female"><br /></h3>
+        <h3>male<input type="radio" name="gender" value='male' checked>female<input type="radio" name="gender"
+                text='female' value="female"><br /></h3>
+        <h2>phonenumber</h2>
+        <input type="tel" name="phonenumber"><br />
+        <h2>identifycode</h2>
+        <input type="text" name="identifycode"><br />
+
         <button type="submit" action="/login">submit</button>
     </form>
+    <form id="icode" action="/imsg" v-on:submit.prevent="geticode">
+        <h2>phonenumber</h2>
+        <input type="tel" name="phonenumber" v-model="phonenumber" ><br />
+        <button type="submit">get identify code</button>
+        <p>{{msg}}</p>
+
+    </form>
 </body>
+<script>
+    var app = new Vue({
+        name: 'icode',
+        el: '#icode',
+        data: {
+            phonenumber: '',
+            msg: ''
+        },
+        methods: {
+            geticode: function () {
+                var that = this;
+                axios.post('/imsg', {
+                    phonenumber: this.phonenumber,
+                }).then((result) => {
+                    if (result.data.msg == 'ok') {
+                        that.msg = 'done';
+                    } else {
+                        that.msg = 'error' + result.data.msg;
+                    }
+                }).catch((err) => {
+                    that.msg = 'error';
+                    console.log(err);
+                });
+            }
+        }
+    })
+</script>
+
 </html>

@@ -68,6 +68,7 @@ User.init({
     phonenumber: {
         type: STRING(20),
         allowNull: true,
+        unique:true,
     },
 
 }, {

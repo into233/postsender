@@ -13,6 +13,7 @@ import { logger } from "../utils/logger";
 import { uploadfilepath } from "../config";
 import { isfollower } from "../module/Follower";
 import { where } from "sequelize/types";
+import { sha256, sendIdentityCodeUtil, Intrandom, verifyVariable } from "../utils/utils";
 
 
 
@@ -46,13 +47,21 @@ var POSTregist = async (ctx: Context, next: Function) => {
     var uname = ctx.request.body.username;
     var upassword = ctx.request.body.password;
     var ugender = ctx.request.body.gender || '';
-    var phonenumber = ctx.request.body.phonenumber || null;
+    var phonenumber = ctx.request.body.phonenumber || ``;
+    var identifycode = ctx.request.body.identifycode;
 
     //TODO: more judgements
     if (!uname || !upassword) {
         ctx.response.body = { msg: 'input valide' };
+        ctx.type = 'json';
         return;
     }
+    if(identifycode && ctx.session.Icode && identifycode != ctx.session.Icode){
+        ctx.response.body = { msg: 'error: identifycode error' };
+        ctx.type = 'json';
+        return;
+    }
+
     var newUserConfig = { username: uname, password: upassword, gender: ugender, phonenumber:phonenumber };
 
     if (!(await User.findOne({ where: { username: uname } }))) {
@@ -60,6 +69,7 @@ var POSTregist = async (ctx: Context, next: Function) => {
         Collect.create({UserId:newuser.id, title:"默认文集"});
         logger.info("create a User " + newuser.id + " " + newuser.username + " " + newuser.gender);
         ctx.cookies.set('username', newUserConfig.username);
+        ctx.session.identifycode = null;
         if (ctx.request.body.android) {
             ctx.response.type = 'json';
             ctx.response.body = { msg: 'regist success' };
@@ -149,6 +159,37 @@ var logoff = async (ctx: Context, next: Function) => {
     ctx.body = { msg: 'ok' };
 }
 
+var sendIdentifyCode = async(ctx:Context, next:Function)=>{
+    var phonenumber = ctx.request.body.phonenumber;
+    var randomnum = Intrandom(4);
+    
+    if(phonenumber == null || phonenumber == undefined || phonenumber.length != 11 || !/^(((13[0-9]{1})|(15[0-9]{1})|(18[0-9]{1})|(14[0-9]{1})|)+\d{8})$/.test(phonenumber)){
+        ctx.type = 'json';
+        ctx.body = {msg:'error:The cell phone number is in the wrong format.'};
+        return;
+    }
+
+    await sendIdentityCodeUtil(phonenumber, "your app key", randomnum, function(err:any, res:any, resData:any){
+        if(err){
+            logger.error(err);
+            ctx.type = 'json';
+            ctx.body = 'error: wrong phone number;'
+        }else{
+            if(resData.errmsg == 'OK'){
+                ctx.session.Icode = randomnum;
+                ctx.type = 'json';
+                ctx.body = 'ok';
+            }else{
+                ctx.type = 'json';
+                ctx.body = 'error: wrong phone number';
+            }
+        }
+    });
+    
+    ctx.type = 'json';
+    ctx.body = {msg:'ok'};
+}
+
 module.exports = {
     'GET /favicon.ico': favicon,
     'GET /login': GETlogin,
@@ -159,6 +200,7 @@ module.exports = {
     'GET /sync': sync,
     'POST /logoff': logoff,
     'GET /logoff': logoff,
+    'POST /imsg': sendIdentifyCode,
     'POST /getuser': async (ctx: Context, next: Function) => {
         var id;
         var huser: any = { msg: "error" }
