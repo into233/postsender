@@ -19,7 +19,8 @@ class User extends Model {
     public gender: string;
     public email: string;
     public headimage: string;
-    public phonenumber: number;
+    public phonenumber ?: number;
+    public qianming: string;
 
     public readonly createdAt: Date;
     public readonly updatedAt: Date;
@@ -53,6 +54,10 @@ User.init({
         type: STRING(32),
         allowNull: false
     },
+    qianming: {
+        type: STRING(144),
+        allowNull: true,
+    },
     email: {
         type: STRING(64),
         allowNull: true,
@@ -84,6 +89,7 @@ interface IUser {
     username: string,
     password: string,
     gender: string,
+    qianming?:string,
     email?: string | null,
     headimage?: string | null,
     phonenumber?: number | null;
@@ -100,20 +106,19 @@ var createUser = async (user: IUser) => {
         phonenumber: user.phonenumber
     })
 };
-var updateUser = async (user: IUser) => {
+var updateUser = async (user: IUser, changinguser: User) => {
     if (!user.id) {
         throw new Error('user id is null');
     }
-    var changinguser = await User.findOne({where:{id:user.id}});
+    
     if (!changinguser) {
         throw new Error('user not found');
     }
-    changinguser.username = user.username || changinguser.username;
-    changinguser.password = user.password || changinguser.password;
-    changinguser.gender = user.gender || changinguser.gender;
-    changinguser.email = user.email || changinguser.email;
-    changinguser.headimage = user.headimage || changinguser.headimage;
-    changinguser.phonenumber = user.phonenumber || changinguser.phonenumber;
+    changinguser.gender = user.gender || '';
+    changinguser.email = user.email || '';
+    changinguser.headimage = user.headimage || 'default.jpg';
+    changinguser.phonenumber = user.phonenumber || undefined;
+    changinguser.qianming = user.qianming || '';
     changinguser.save();
 }
 var changePassword = async (username:string, oldpw:string,  newpw:string)=>{

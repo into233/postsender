@@ -108,16 +108,16 @@ var unpraiseArtical = async (ctx: Context, next: Function) => {
 
 var AddArtical = async (ctx: Context, next: Function) => {
     var imgfile;
-    try {
-        var title = ctx.request.body.title;
-        var content = ctx.request.body.content;
-        var username = ctx.session.username;
-        var collectid = ctx.request.body.collectid || '';
-        if (ctx.request.files)
-            imgfile = ctx.request.files.file.name;
-    } catch (err) {
-        logger.error("AddArtical" + err);
-        ctx.myerr = "addartical error";
+    var title = ctx.request.body.title || '';
+    var content = ctx.request.body.content || '';
+    var username = ctx.session.username;
+    var collectid = ctx.request.body.collectid || '';
+    if (ctx.request.files)
+        imgfile = ctx.request.files.file.name;
+    if (!verifyVariable(username)) {
+
+        logger.error("AddArtical error");
+        ctx.myerr = "please login!";
         return;
     }
 
@@ -206,16 +206,16 @@ var pushPusherArticalContorllser = async (ctx: Context, next: Function) => {
         ctx.myerr = 'error articals not found';
     }
 }
-var getArticalsFromCollectController = async(ctx:Context, next:Function)=>{
+var getArticalsFromCollectController = async (ctx: Context, next: Function) => {
     var userid = ctx.request.body.userid;
     var collectid = ctx.request.body.collectid;
-    if(!verifyVariable(userid, collectid)){
+    if (!verifyVariable(userid, collectid)) {
         ctx.myerr = 'getArticalsFromCollectController error: userid or collectid not found';
         await next();
         return;
     }
     var articles = await getArticalsFromCollect(userid, collectid);
-    ctx.body = {size:articles.length, data:articles};
+    ctx.body = { size: articles.length, data: articles };
     ctx.type = 'json';
     await next();
 
@@ -232,5 +232,5 @@ export = {
     'POST /deleteArtical': DeleteArtical,
     'POST /pushArticalsByCollectid': pushArticalsByCollectid,
     'POST /pushPusherArtical': pushPusherArticalContorllser,
-    'POST /getArticalsFromCollect': getArticalsFromCollectController, 
+    'POST /getArticalsFromCollect': getArticalsFromCollectController,
 }

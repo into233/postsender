@@ -14,7 +14,7 @@ var getCollectByUser = async(ctx:Context, next:Function)=>{
         ctx.type = 'json';
         await next();
     }else{
-        ctx.myerror = 'error: no collects';
+        ctx.myerr = 'error: no collects';
         return ;
     }
 }

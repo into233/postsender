@@ -1,7 +1,7 @@
 import { Context } from "koa";
 import { readFile, readFileSync, createReadStream, createWriteStream, statSync, fstat, unlink } from "fs";
 import path from 'path';
-import { User, findUser, createUser } from '../module/User';
+import { User, findUser, createUser, updateUser } from '../module/User';
 import sequelize from '../db';
 import Artical from "../module/Artical";
 import { Comment } from "../module/Comment";
@@ -52,11 +52,11 @@ var POSTregist = async (ctx: Context, next: Function) => {
 
     //TODO: more judgements
     if (!uname || !upassword) {
-        ctx.response.body = { msg: 'input valide' };
+        ctx.response.body = { msg: 'please insure your username and password are alright' };
         ctx.type = 'json';
         return;
     }
-    if(identifycode && ctx.session.Icode && identifycode != ctx.session.Icode){
+    if(identifycode && identifycode != ctx.session.Icode){
         ctx.response.body = { msg: 'error: identifycode error' };
         ctx.type = 'json';
         return;
@@ -165,29 +165,49 @@ var sendIdentifyCode = async(ctx:Context, next:Function)=>{
     
     if(phonenumber == null || phonenumber == undefined || phonenumber.length != 11 || !/^(((13[0-9]{1})|(15[0-9]{1})|(18[0-9]{1})|(14[0-9]{1})|)+\d{8})$/.test(phonenumber)){
         ctx.type = 'json';
-        ctx.body = {msg:'error:The cell phone number is in the wrong format.'};
+        ctx.body = {msg:'error:The phone number is in the wrong format.'};
         return;
     }
 
-    await sendIdentityCodeUtil(phonenumber, "your app key", randomnum, function(err:any, res:any, resData:any){
+    await sendIdentityCodeUtil(phonenumber, "your appKey", randomnum, function(err:any, res:any, resData:any){
         if(err){
             logger.error(err);
-            ctx.type = 'json';
-            ctx.body = 'error: wrong phone number;'
         }else{
             if(resData.errmsg == 'OK'){
-                ctx.session.Icode = randomnum;
-                ctx.type = 'json';
-                ctx.body = 'ok';
+                logger.info("send identify code successfully");
             }else{
-                ctx.type = 'json';
-                ctx.body = 'error: wrong phone number';
+                logger.info("send identify code error");
             }
         }
     });
-    
+    ctx.session.Icode = randomnum;
     ctx.type = 'json';
-    ctx.body = {msg:'ok'};
+    ctx.body = {msg:'error'};
+    await next();
+}
+var updateUserConfig = async(ctx:Context, next:Function)=>{
+    var tmpUser = JSON.parse(ctx.request.body.user);
+    var uid = tmpUser.id;
+
+    if(uid == null){
+        ctx.myerr = "uid not found";
+        return;
+    }
+    var user = await User.findOne({where:{id:uid}});
+    if(user){
+        try{
+            await updateUser(tmpUser, user);
+        }catch(err){
+            ctx.myerr = 'error:' + err;
+            return;
+        }
+        ctx.type = 'json';
+        ctx.body = {msg:'ok', data:tmpUser};
+    }else{
+        ctx.myerr = "user not found";
+        return;
+    }
+
 }
 
 module.exports = {
@@ -201,6 +221,7 @@ module.exports = {
     'POST /logoff': logoff,
     'GET /logoff': logoff,
     'POST /imsg': sendIdentifyCode,
+    'POST /updateUser':updateUserConfig,
     'POST /getuser': async (ctx: Context, next: Function) => {
         var id;
         var huser: any = { msg: "error" }
