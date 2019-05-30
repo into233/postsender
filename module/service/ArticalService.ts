@@ -8,7 +8,7 @@ import { Follower } from "../Follower";
 import { Star } from "../Star";
 
 //推送文章根据服务器中存的有事先做好的日期大于今天的文章, 而且一天一篇一直到19年八月都可以实现 山寨版推送
-var pushArticals = async (page: number | string, size: number | string, username: string | null) => {
+var pushArticals = async (page: number | string, size: number | string, userid: number | null) => {
     if (page == null) {
         page = 0;
     }
@@ -45,7 +45,7 @@ var pushArticals = async (page: number | string, size: number | string, username
             });
 
         for (var artical in articals) {
-            sendartical[artical] = await wrapArtical(articals[artical], username);
+            sendartical[artical] = await wrapArtical(articals[artical], userid);
         }
         logger.debug(articals);
         return sendartical;
@@ -82,14 +82,14 @@ var getArticalfromCollect = async (collectid: number) => {
     }
 }
 
-var getArticalsByCollectId = async (collectid: number, username: string) => {
+var getArticalsByCollectId = async (collectid: number, userid: number) => {
     var collect = await Collect.findOne({ where: { id: collectid } });
     if (collect) {
         var articals = await collect.getArticals();
         var articalJsonarr: Array<any> = [];
 
         for (var artical in articals) {
-            articalJsonarr[artical] = await wrapArtical(articals[artical], username);
+            articalJsonarr[artical] = await wrapArtical(articals[artical], userid);
         }
         return articalJsonarr;
     } else {
@@ -97,11 +97,11 @@ var getArticalsByCollectId = async (collectid: number, username: string) => {
     }
 }
 
-var wrapArtical = async (artical: Artical, username: string | null) => {
+var wrapArtical = async (artical: Artical, userid: number | null) => {
     var counts = await artical.countArticalPraises();
     var articaljson: any = artical.toJSON();
     articaljson.articalpraise = counts;
-    if (username && await isUserPraised(username, artical.id)) {
+    if (userid && await isUserPraised(userid, artical.id)) {
         articaljson.isUserPraised = true;
     } else {
         articaljson.isUserPraised = false;
@@ -147,7 +147,7 @@ var pushPusherArtical = async (page: number, size: number, userid: number) => {
                 });
 
             for (var artical in articals) {
-                sendartical[artical] = await wrapArtical(articals[artical], fan.username);
+                sendartical[artical] = await wrapArtical(articals[artical], fan.id);
             }
             logger.debug('pushPusherArtical' + articals);
             return sendartical;

@@ -54,7 +54,7 @@ app.use(async (ctx: Koa.Context, next: Function) => {
     if(ctx.myerr != null){
         ctx.type = 'json';
         ctx.body = {msg:ctx.myerr};
-        logger.error("error:" +　ctx.myerr);
+        logger.error(ctx.myerr);
         ctx.myerr = null;
     }
     logger.info(`${ctx.method} ${ctx.url} in ${time}ms from ${ctx.request.ip.split(':').pop()}`)

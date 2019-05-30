@@ -24,7 +24,7 @@ var verifyVariable = function (...args: any[]) {
 }
 
 var Intrandom = function (n: number) {
-    return parseInt((Math.random() * (10 ** 4)).toString());
+    return (Math.random() * 10 ** 4).toFixed(4).split('.')[1];
 }
 
 var sha256 = function (value: any) {

@@ -75,6 +75,7 @@ var userapp = new Vue({
     el: '#userapp',
     data: {
         username: getCookie('username'),
+        userid:getCookie('userid'),
     }
 })
 

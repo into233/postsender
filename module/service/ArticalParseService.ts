@@ -4,9 +4,9 @@ import { logger } from "../../utils/logger";
 import { error } from "util";
 
 
-var parseArtical = async (username: string, articalid: number) => {
+var parseArtical = async (userid: number, articalid: number) => {
     try {
-        var user = await User.findOne({ where: { username: username } });
+        var user = await User.findOne({ where: { id: userid } });
         if (user) {
             var userid: number = user.id;
             createArticalPraise(articalid, userid);
@@ -18,11 +18,10 @@ var parseArtical = async (username: string, articalid: number) => {
         logger.error(err);
     }
 }
-var isUserPraised = async (username: string, articalid: number) => {
+var isUserPraised = async (userid: number, articalid: number) => {
     try {
-        var user = await User.findOne({ where: { username: username } });
+        var user = await User.findOne({ where: { id: userid } });
         if (user) {
-            var userid: number = user.id;
             if (await ArticalPraise.findOne({ where: { UserId: userid, ArticalId: articalid } })) {
                 return true;
             } else {
@@ -36,11 +35,10 @@ var isUserPraised = async (username: string, articalid: number) => {
         logger.error(err);
     }
 }
-var unPraiseArtical = async (username: string, articalid: number) => {
+var unPraiseArtical = async (userid: number, articalid: number) => {
     try {
-        var user = await User.findOne({ where: { username: username } });
+        var user = await User.findOne({ where: { id: userid } });
         if (user) {
-            var userid: number = user.id;
             var ap = await ArticalPraise.findOne({ where: { UserId: userid, ArticalId: articalid } });
             if(ap){
                 ap.destroy();

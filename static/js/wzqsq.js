@@ -91,7 +91,7 @@ Vue.component('artical-post', {
         url = '/unPraiseArtical';
       }
       axios.post(url, {
-        username: userconfig.username,
+        userid: userconfig.userid,
         articalid: aritcalid
       }).then((result) => {
         if (result.data.msg == 'ok') {
@@ -112,7 +112,7 @@ Vue.component('artical-post', {
         return;
       senddata = {
         articalid: articalid,
-        username: userconfig.username,
+        userid:userconfig.userid
       };
       var that = this;
       axios.post('/getComments', senddata).then((result) => {
@@ -150,7 +150,7 @@ Vue.component('comment-post', {
         url = '/unPraiseComment';
       }
       axios.post(url, {
-        username: userconfig.username,
+        username: userconfig.userid,
         commentid: comentid,
       }).then((result) => {
         if (result.data.msg == 'ok') {
@@ -179,6 +179,7 @@ var userconfig = new Vue({
   el: '#nav_bar',
   data: {
     username: getCookie('username'),
+    userid:getCookie('id')
   }
 })
 var addartical = new Vue({
@@ -224,7 +225,7 @@ var articals = new Vue({
       senddata = {
         page: this.page,
         size: this.size,
-        username: userconfig.username
+        userid: userconfig.userid
       };
       var that = this;
       axios.post('/getArticals', senddata).then((result) => {

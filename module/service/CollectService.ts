@@ -29,7 +29,6 @@ var getDefaultCollect = async(userid:number)=>{
 }
 
 var getArticalsFromCollect = async(userid:number, collectid:number)=>{
-    verifyVariable(userid, collectid);
     var stararticleid = await Star.findAll({attributes:['ArticalId'],where:{CollectId:collectid, UserId:userid}});
     var staraticleidarr = [];//1.在文集收藏里面 2.原创的
     for(var i of stararticleid){
@@ -43,7 +42,7 @@ var getArticalsFromCollect = async(userid:number, collectid:number)=>{
     var user = await User.findOne({where:{id:userid}});
     if(user){
         for(var article in articles){
-            articlejson[article] = await wrapArtical(articles[article], user.username);
+            articlejson[article] = await wrapArtical(articles[article], user.id);
         }
     }
 

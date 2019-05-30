@@ -12,8 +12,7 @@ import { getUserByidForUser, setUserHeadimg } from "../module/service/UserServic
 import { logger } from "../utils/logger";
 import { uploadfilepath } from "../config";
 import { isfollower } from "../module/Follower";
-import { where } from "sequelize/types";
-import { sha256, sendIdentityCodeUtil, Intrandom, verifyVariable } from "../utils/utils";
+import { sendIdentityCodeUtil, Intrandom, verifyVariable } from "../utils/utils";
 
 
 
@@ -43,42 +42,47 @@ var GETregist = async (ctx: Context, next: Function) => {
     ctx.response.body = createReadStream('./static/html/regist.htm');
     await next();
 }
+
 var POSTregist = async (ctx: Context, next: Function) => {
     var uname = ctx.request.body.username;
     var upassword = ctx.request.body.password;
     var ugender = ctx.request.body.gender || '';
-    var phonenumber = ctx.request.body.phonenumber || ``;
+    var phonenumber = ctx.request.body.phonenumber || '';
     var identifycode = ctx.request.body.identifycode;
 
     //TODO: more judgements
-    if (!uname || !upassword) {
-        ctx.response.body = { msg: 'please insure your username and password are alright' };
+    if (!upassword || !/^1(3|4|5|7|8|9)\d{9}$/.test(phonenumber)) {
+        ctx.response.body = { msg: 'please insure your phonenumber and password are alright' };
         ctx.type = 'json';
+        await next();
         return;
     }
-    if(identifycode && identifycode != ctx.session.Icode){
-        ctx.response.body = { msg: 'error: identifycode error' };
+    if(uname == undefined){
+        uname = phonenumber + '';
+    }
+    if(!PhonenumberExistAndDelete(phonenumber, parseInt(identifycode))){
+        ctx.response.body = { msg: 'error: identifycode error or exceed the time' };
         ctx.type = 'json';
         return;
     }
 
     var newUserConfig = { username: uname, password: upassword, gender: ugender, phonenumber:phonenumber };
 
-    if (!(await User.findOne({ where: { username: uname } }))) {
-        var newuser = await createUser(newUserConfig);
+    if (!(await User.findOne({ where: { phonenumber: phonenumber } }))) {
+        var newuser:any = await createUser(newUserConfig);
         Collect.create({UserId:newuser.id, title:"默认文集"});
         logger.info("create a User " + newuser.id + " " + newuser.username + " " + newuser.gender);
+        ctx.cookies.set('userid', newuser.id);
         ctx.cookies.set('username', newUserConfig.username);
-        ctx.session.identifycode = null;
         if (ctx.request.body.android) {
             ctx.response.type = 'json';
             ctx.response.body = { msg: 'regist success' };
         } else
             ctx.redirect('/login');
     } else {
-        logger.error("create a Username " + uname + " username has already exists");
+        logger.error("create a phonenumber " + phonenumber + " phonenumber has already exists");
         ctx.response.type = 'json'
-        ctx.response.body = { msg: 'username has already exists' };
+        ctx.response.body = { msg: 'phonenumber has already exists' };
     }
     await next();
 }
@@ -91,22 +95,33 @@ var GETlogin = async (ctx: Context, next: Function) => {
 var POSTlogin = async (ctx: Context, next: Function) => {
     var uname = ctx.request.body.username;
     var upassword = ctx.request.body.password;
+    var phonenumber = ctx.request.body.phonenumber;
     //TODO: more judgements
-    if (!uname || !upassword) {
+    if (!verifyVariable(upassword, phonenumber)) {
         ctx.response.type = 'json';
-        ctx.response.body = { msg: 'input valide' };
+        ctx.response.body = { msg: 'error: phonenumber or password cannot be null' };
+        await next();
         return;
     }
-    if (ctx.session.user) {
+    if (ctx.session.username) {
+        if(ctx.request.body.android){
+            ctx.myerr = "error: you have already login";
+            await next();
+            return;
+        }
         ctx.body = `${ctx.session.username} 已经登录, 请勿重复登录`;
+        await next();
         return;
     }
 
-    var a:any = await findUser({ username: uname, password: upassword });
+    var a:any = await findUser({ phonenumber: phonenumber, password: upassword });
     if (a) {
-        ctx.session.username = uname;
+        ctx.session.username = a.username;
         ctx.session.userid = a.id;
-        ctx.cookies.set('username', uname, {
+        ctx.cookies.set('username', a.username, {
+            httpOnly: false,
+        });
+        ctx.cookies.set('userid', a.id, {
             httpOnly: false,
         });
 
@@ -158,20 +173,47 @@ var logoff = async (ctx: Context, next: Function) => {
     ctx.response.type = 'json';
     ctx.body = { msg: 'ok' };
 }
+interface IphoneIcode{
+    phonenumber:number;
+    phoneIcode:number;
+    createdAt:number;
+}
+
+var phoneIcode:Array<IphoneIcode> = [];
+var PhonenumberExistAndDelete = function(phonenumber:number, Icode:number){
+    for(var n of phoneIcode){
+        if(n.phonenumber == phonenumber && Icode == n.phoneIcode){
+            phoneIcode.splice(phoneIcode.indexOf(n), 1);
+            if(n.createdAt + 30 * 60 * 1000 < Date.now()){
+                return false;
+            }
+            return true;
+        }
+
+    }
+    return false;
+}
 
 var sendIdentifyCode = async(ctx:Context, next:Function)=>{
     var phonenumber = ctx.request.body.phonenumber;
     var randomnum = Intrandom(4);
     
-    if(phonenumber == null || phonenumber == undefined || phonenumber.length != 11 || !/^(((13[0-9]{1})|(15[0-9]{1})|(18[0-9]{1})|(14[0-9]{1})|)+\d{8})$/.test(phonenumber)){
+    if(phonenumber == null || phonenumber == undefined || phonenumber.length != 11 || !/^1(3|4|5|7|8|9)\d{9}$/.test(phonenumber)){
         ctx.type = 'json';
-        ctx.body = {msg:'error:The phone number is in the wrong format.'};
+        ctx.body = {msg:'错误的手机号格式'};
         return;
     }
 
-    await sendIdentityCodeUtil(phonenumber, "your appKey", randomnum, function(err:any, res:any, resData:any){
+    var user = await User.findOne({where:{phonenumber:phonenumber}});
+    if(user){
+        ctx.myerr = "手机号已存在";
+        await next();
+        return;
+    }
+
+    await sendIdentityCodeUtil(phonenumber, "your appkey", parseInt(randomnum), function(err:any, res:any, resData:any){
         if(err){
-            logger.error(err);
+            logger.error(JSON.stringify(err));
         }else{
             if(resData.errmsg == 'OK'){
                 logger.info("send identify code successfully");
@@ -180,9 +222,10 @@ var sendIdentifyCode = async(ctx:Context, next:Function)=>{
             }
         }
     });
+    phoneIcode.push({phonenumber:phonenumber, phoneIcode:parseInt(randomnum), createdAt:Date.now()});
     ctx.session.Icode = randomnum;
     ctx.type = 'json';
-    ctx.body = {msg:'error'};
+    ctx.body = {msg:'ok'};
     await next();
 }
 var updateUserConfig = async(ctx:Context, next:Function)=>{

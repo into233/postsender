@@ -6,6 +6,7 @@ import { Comment } from './Comment';
 import { CommentPraise } from './CommentPraise';
 import { Collect } from './Collect';
 import { logger } from '../utils/logger';
+import { stringify } from 'querystring';
 
 function md5(str: string): string {
     let mdg = createHash('md5');
@@ -48,7 +49,7 @@ User.init({
     username: {
         type: STRING(32),
         allowNull: false,
-        unique: true,
+        unique: false,
     },
     password: {
         type: STRING(32),
@@ -114,18 +115,18 @@ var updateUser = async (user: IUser, changinguser: User) => {
     if (!changinguser) {
         throw new Error('user not found');
     }
+    changinguser.username = user.username || changinguser.phonenumber + '';
     changinguser.gender = user.gender || '';
     changinguser.email = user.email || '';
-    changinguser.headimage = user.headimage || 'default.jpg';
-    changinguser.phonenumber = user.phonenumber || undefined;
+    changinguser.headimage = user.headimage || '';
     changinguser.qianming = user.qianming || '';
     changinguser.save();
 }
-var changePassword = async (username:string, oldpw:string,  newpw:string)=>{
-    if(!username){
-        throw new Error('username is null');
+var changePassword = async (userid:string, oldpw:string,  newpw:string)=>{
+    if(!userid){
+        throw new Error('userid is null');
     }
-    var changinguser = await findUser({username:username, password:oldpw});
+    var changinguser = await findUser({id:userid, password:oldpw});
     if(!oldpw || !newpw){
         throw new Error('oldpassword or newpassword is null');
     }
@@ -147,7 +148,7 @@ var changePassword = async (username:string, oldpw:string,  newpw:string)=>{
 var findUser = async (user: any) => {
     return User.findOne({
         where: {
-            username: user.username,
+            phonenumber: user.phonenumber,
             password: md5(user.password),
         }
     });

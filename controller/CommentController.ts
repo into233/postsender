@@ -55,9 +55,9 @@ var addComment = async (ctx: Context, next: Function) => {
         return;
     }
     
-    var username = ctx.session.username;
-    if (username) {
-        var user = await User.findOne({ where: { username: username } });
+    var userid = ctx.session.userid;
+    if (userid) {
+        var user = await User.findOne({ where: { id: userid } });
         if (user) {
             await createComment({ content: content, UserId:user.id, ArticalId:articalid });
             ctx.type = 'json';
@@ -69,7 +69,7 @@ var addComment = async (ctx: Context, next: Function) => {
     } else {
         if (ctx.request.body.android) {
             ctx.type = 'json';
-            ctx.body = { msg: 'error: please login' };
+            ctx.body = { msg: 'error: please login', data:{} };
             await next();
         } else {
             ctx.redirect('/login');
