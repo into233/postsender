@@ -1,5 +1,5 @@
 import { Context } from "koa";
-import { readFile, readFileSync, createReadStream, createWriteStream, statSync, fstat, unlink, promises } from "fs";
+import { readFile, readFileSync, createReadStream, createWriteStream, statSync, fstat, unlink } from "fs";
 import path from 'path';
 import { User, findUser, createUser, updateUser } from '../module/User';
 import sequelize from '../db';
@@ -13,7 +13,6 @@ import { logger } from "../utils/logger";
 import { uploadfilepath } from "../config";
 import { isfollower } from "../module/Follower";
 import { sendIdentityCodeUtil, Intrandom, verifyVariable } from "../utils/utils";
-import { setTimeout } from "timers";
 
 
 
@@ -183,15 +182,12 @@ interface IphoneIcode{
 var phoneIcode:Array<IphoneIcode> = [];
 var PhonenumberExistAndDelete = function(phonenumber:number, Icode:number, shouldDelete:boolean){
     for(var n of phoneIcode){
-        if(n.createdAt + 30 * 60 * 1000 < Date.now()){//过期就删
-            phoneIcode.splice(phoneIcode.indexOf(n), 1);
-        }
         if(n.phonenumber == phonenumber && Icode == n.phoneIcode){
-            if(n.createdAt + 30 * 60 * 1000 < Date.now()){
-                return false;
-            }
             if(shouldDelete){
                 phoneIcode.splice(phoneIcode.indexOf(n), 1);
+            }
+            if(n.createdAt + 30 * 60 * 1000 < Date.now()){
+                return false;
             }
             return true;
         }
@@ -209,18 +205,13 @@ var sendIdentifyCode = async(ctx:Context, next:Function)=>{
         ctx.body = {msg:'错误的手机号格式'};
         return;
     }
-    var isreturn;
     phoneIcode.forEach(function(value, index){
-        if(value.phonenumber == parseInt(phonenumber) && value.createdAt + 30 * 1000 > Date.now() ){
+        if(value.phonenumber == parseInt(phonenumber)){
             ctx.type = 'json';
             ctx.body = {msg:'发送过于频繁, 请30s后重试'};
-            isreturn = true;
+            return;
         }
     })
-    if(isreturn == true){
-        await next();
-        return;
-    }
 
     var user = await User.findOne({where:{phonenumber:phonenumber}});
     if(user){
@@ -228,45 +219,23 @@ var sendIdentifyCode = async(ctx:Context, next:Function)=>{
         await next();
         return;
     }
-    var okFlag = false;
-    
-    sendIdentityCodeUtil(phonenumber, "e1bc64cf7635d3a7b34814037097d1ec", parseInt(randomnum), function(err:any, res:any, resData:any){
+
+    await sendIdentityCodeUtil(phonenumber, "your appkey", parseInt(randomnum), function(err:any, res:any, resData:any){
         if(err){
             logger.error(JSON.stringify(err));
         }else{
             if(resData.errmsg == 'OK'){
-                var isPhoneExist = false;
-                phoneIcode.forEach(function(value, index){
-                    if(value.phonenumber == parseInt(phonenumber)){
-                        value.createdAt = Date.now();
-                        value.phoneIcode = parseInt(randomnum);
-                        isPhoneExist = true;
-                    }
-                });
-                if(!isPhoneExist){
-                    phoneIcode.push({phonenumber:phonenumber, phoneIcode:parseInt(randomnum), createdAt:Date.now()});
-                }
-                ctx.type = 'json';
-                ctx.body = {msg:'ok'};
                 logger.info("send identify code successfully");
             }else{
-                ctx.myerr = "发送失败" + resData.errmsg;
                 logger.info("send identify code error");
             }
         }
-        okFlag = true;
     });
-    while(!okFlag){
-        await delay(1);
-    }
+    phoneIcode.push({phonenumber:phonenumber, phoneIcode:parseInt(randomnum), createdAt:Date.now()});
+    ctx.session.Icode = randomnum;
+    ctx.type = 'json';
+    ctx.body = {msg:'ok'};
     await next();
-}
-async function delay(time:number){
-    return new Promise(function(resolve, reject){
-        setTimeout(function(){
-            resolve();
-        },time);
-    })
 }
 var updateUserConfig = async(ctx:Context, next:Function)=>{
     var tmpUser = JSON.parse(ctx.request.body.user);
