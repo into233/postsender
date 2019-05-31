@@ -31,7 +31,7 @@ var sha256 = function (value: any) {
     return createHash('SHA256').update(value.toString()).digest('hex');
 }
 
-var sendIdentityCodeUtil = async (phonenumber: string, AppKey: string, randomnum:number, sendcallback:Function) =>{
+var sendIdentityCodeUtil = function (phonenumber: string, AppKey: string, randomnum:number, sendcallback:Function) {
 
     // 短信应用 SDK AppID
     var appid = 1400202233;  // SDK AppID 以1400开头
@@ -54,7 +54,7 @@ var sendIdentityCodeUtil = async (phonenumber: string, AppKey: string, randomnum
     // 设置请求回调处理, 这里只是演示，用户需要自定义相应处理回调
     
     var ssender = qcloudsms.SmsSingleSender();
-    await ssender.sendWithParam(86, phoneNumbers[0], templateId,
+    ssender.sendWithParam(86, phoneNumbers[0], templateId,
         [randomnum, 30], smsSign, "", "", sendcallback);
 
 }
