@@ -60,7 +60,7 @@ var POSTregist = async (ctx: Context, next: Function) => {
     if(uname == undefined){
         uname = phonenumber + '';
     }
-    if(!PhonenumberExistAndDelete(phonenumber, parseInt(identifycode))){
+    if(!PhonenumberExistAndDelete(phonenumber, parseInt(identifycode), true)){
         ctx.response.body = { msg: 'error: identifycode error or exceed the time' };
         ctx.type = 'json';
         return;
@@ -180,10 +180,12 @@ interface IphoneIcode{
 }
 
 var phoneIcode:Array<IphoneIcode> = [];
-var PhonenumberExistAndDelete = function(phonenumber:number, Icode:number){
+var PhonenumberExistAndDelete = function(phonenumber:number, Icode:number, shouldDelete:boolean){
     for(var n of phoneIcode){
         if(n.phonenumber == phonenumber && Icode == n.phoneIcode){
-            phoneIcode.splice(phoneIcode.indexOf(n), 1);
+            if(shouldDelete){
+                phoneIcode.splice(phoneIcode.indexOf(n), 1);
+            }
             if(n.createdAt + 30 * 60 * 1000 < Date.now()){
                 return false;
             }
@@ -203,6 +205,13 @@ var sendIdentifyCode = async(ctx:Context, next:Function)=>{
         ctx.body = {msg:'错误的手机号格式'};
         return;
     }
+    phoneIcode.forEach(function(value, index){
+        if(value.phonenumber == parseInt(phonenumber)){
+            ctx.type = 'json';
+            ctx.body = {msg:'发送过于频繁, 请30s后重试'};
+            return;
+        }
+    })
 
     var user = await User.findOne({where:{phonenumber:phonenumber}});
     if(user){
@@ -230,9 +239,9 @@ var sendIdentifyCode = async(ctx:Context, next:Function)=>{
 }
 var updateUserConfig = async(ctx:Context, next:Function)=>{
     var tmpUser = JSON.parse(ctx.request.body.user);
-    var uid = tmpUser.id;
+    var uid = ctx.session.userid;
 
-    if(uid == null){
+    if(tmpUser.id == null || tmpUser.id == undefined){
         ctx.myerr = "uid not found";
         return;
     }
