@@ -21,5 +21,8 @@ if(process.env.NODE_ENV !== 'production'){
         format: myFormat, level:'debug'
     }))
 }
+var info = function(sql:string){
+    logger.debug("SQL :: " + sql);
+}
 
-export {logger};
+export {logger, info};

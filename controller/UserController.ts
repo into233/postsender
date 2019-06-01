@@ -8,7 +8,7 @@ import { Comment } from "../module/Comment";
 import { CommentPraise } from "../module/CommentPraise";
 import { ArticalPraise } from "../module/ArticalPraise";
 import { Collect } from "../module/Collect";
-import { getUserByidForUser, setUserHeadimg } from "../module/service/UserService";
+import { getUserByidForUser, setUserHeadimg, getUserFollowers, getUserPushers, wrapUser } from "../module/service/UserService";
 import { logger } from "../utils/logger";
 import { uploadfilepath } from "../config";
 import { isfollower } from "../module/Follower";
@@ -118,7 +118,7 @@ var POSTlogin = async (ctx: Context, next: Function) => {
     if (a) {
         ctx.session.username = a.username;
         ctx.session.userid = a.id;
-        ctx.cookies.set('username', a.username, {
+        ctx.cookies.set('username',encodeURIComponent(a.username), {
             httpOnly: false,
         });
         ctx.cookies.set('userid', a.id, {
@@ -128,12 +128,10 @@ var POSTlogin = async (ctx: Context, next: Function) => {
         logger.info(`${a.username} was login!`);
         if (ctx.request.body.android)//如果是安卓app则总是以json返回, 具体还要自己实现;
         {
-            var aa = a.toJSON();
-            delete aa.password;
-            aa.collectCount = await a.countCollects();
-            aa.articleCount = await a.countArticals();
+            var rtuser = await wrapUser(a);
+
             ctx.type = 'json';
-            ctx.response.body = { msg: 'login success', data:aa};
+            ctx.response.body = { msg: 'login success', data:rtuser};
         } else
             ctx.redirect('/welcome');
     } else {
@@ -170,7 +168,7 @@ var sync = async (ctx: Context, next: Function) => {
 var logoff = async (ctx: Context, next: Function) => {
     ctx.session.username = null;
     ctx.session.userid = null;
-    ctx.response.type = 'json';
+    ctx.type = 'json';
     ctx.body = { msg: 'ok' };
 }
 interface IphoneIcode{
@@ -262,6 +260,47 @@ var updateUserConfig = async(ctx:Context, next:Function)=>{
 
 }
 
+var getFollowers = async(ctx:Context, next:Function)=>{
+    var userid = ctx.request.body.userid;
+
+    if(!verifyVariable(userid)){
+        ctx.myerr = 'need userid param';
+        return;
+    }
+
+    try{
+        var followers = await getUserFollowers(userid);
+        ctx.body = {msg:'ok', data:followers};
+        ctx.type = 'json';
+        logger.info("get Followers for userid" + userid);
+        await next();
+    }catch(err){
+        ctx.body = {msg:'error' + err, data:[]};
+        ctx.type = 'json'
+        logger.error("ERROR: get Followers for userid" + userid + " " + err);
+    }
+}
+var getPusher = async(ctx:Context, next:Function)=>{
+    var userid = ctx.request.body.userid;
+
+    if(!verifyVariable(userid)){
+        ctx.myerr = 'need userid param';
+        return;
+    }
+    try{
+        var Pushers = await getUserPushers(userid);
+        ctx.body = {msg:'ok', data:Pushers};
+        ctx.type = 'json';
+        logger.info("getPusher for userid" + userid);
+        await next();
+    }catch(err){
+        ctx.body = {msg:'error' + err, data:[]};
+        ctx.type = 'json'
+        logger.error("ERROR: getPusher for userid" + userid + " " + err);
+    }
+
+}
+
 module.exports = {
     'GET /favicon.ico': favicon,
     'GET /login': GETlogin,
@@ -274,6 +313,7 @@ module.exports = {
     'GET /logoff': logoff,
     'POST /imsg': sendIdentifyCode,
     'POST /updateUser':updateUserConfig,
+    'POST /getFollowers':getFollowers,
     'POST /getuser': async (ctx: Context, next: Function) => {
         var id;
         var huser: any = { msg: "error" }

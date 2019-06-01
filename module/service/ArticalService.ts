@@ -6,6 +6,7 @@ import { isUserPraised } from "./ArticalParseService";
 import { Collect } from "../Collect";
 import { Follower } from "../Follower";
 import { Star } from "../Star";
+import { Comment } from "../Comment";
 
 //推送文章根据服务器中存的有事先做好的日期大于今天的文章, 而且一天一篇一直到19年八月都可以实现 山寨版推送
 var pushArticals = async (page: number | string, size: number | string, userid: number | null) => {
@@ -47,7 +48,7 @@ var pushArticals = async (page: number | string, size: number | string, userid: 
         for (var artical in articals) {
             sendartical[artical] = await wrapArtical(articals[artical], userid);
         }
-        logger.debug(articals);
+        logger.debug("searched " + articals.length + " articles");
         return sendartical;
 
     } catch (err) {
@@ -82,9 +83,9 @@ var getArticalfromCollect = async (collectid: number) => {
     }
 }
 
-var getArticalsByCollectId = async (collectid: number, userid: number) => {
+var getArticalsByCollectId = async (collectid: number|null, userid: number) => {
     var collect = await Collect.findOne({ where: { id: collectid } });
-    if (collect) {
+    if (collect != null) {
         var articals = await collect.getArticals();
         var articalJsonarr: Array<any> = [];
 
@@ -93,8 +94,36 @@ var getArticalsByCollectId = async (collectid: number, userid: number) => {
         }
         return articalJsonarr;
     } else {
-        return false;
+        var articaljsonarr2:Array<any> = [];
+        var articalIdsArr:Array<any> = [];
+        var ArticalIds = await Star.findAll({attributes:['ArticalId'],where:{UserId:userid}});
+        for(let artical of ArticalIds){
+            articalIdsArr.push(artical.getDataValue('ArticalId'));
+        }
+        //翻转..伪按时间顺序
+        //articalIdsArr = articalIdsArr.reverse();
+        var articals = await Artical.findAll({where:{id:articalIdsArr}, order:[['createdAt','DESC']]});
+        
+        for (var artical in articals) {
+            articaljsonarr2[artical] = await wrapArtical(articals[artical], userid);
+        }
+        return articaljsonarr2;
     }
+}
+
+var getArticalByUserComments = async(Userid:number)=>{
+    var ArticalIDs:Array<any> = [];
+    var comments = await Comment.findAll({attributes:['ArticalId'],where:{UserId:Userid}});
+    comments.forEach(function(comment){
+        ArticalIDs.push(comment.getDataValue('ArticalId'));
+    })
+    var articals = await Artical.findAll({where:{id:ArticalIDs}, order:[['createdAt','DESC']]});
+    var articaljson:Array<any> = [];
+    for (var artical in articals) {
+        articaljson[artical] = await wrapArtical(articals[artical], Userid);
+    }
+    return articaljson;
+    
 }
 
 var wrapArtical = async (artical: Artical, userid: number | null) => {
@@ -110,6 +139,26 @@ var wrapArtical = async (artical: Artical, userid: number | null) => {
     articaljson.starCount = await artical.countStars();
     articaljson.commentCount = await artical.countComments();
     return articaljson;
+}
+var getUserArticals = async(userid: number)=>{
+    try{
+        var user = await User.findOne({where:{id:userid}});
+        if(user){
+            var articals = await user.getArticals();
+            var articalsJson:Array<any> = [];
+            
+            for(let x of articals){
+                articalsJson.push(await wrapArtical(x, userid));
+            }
+            logger.info("getUserArticals success for userid" + userid);
+            return articalsJson;
+        }else{
+            return [];
+        }
+    }catch(err){
+        logger.error("getUserArticals error");
+        return [];
+    }
 }
 
 var pushPusherArtical = async (page: number, size: number, userid: number) => {
@@ -160,4 +209,4 @@ var pushPusherArtical = async (page: number, size: number, userid: number) => {
     }
 }
 
-export { pushArticals, deleteArtical, getArticalfromCollect, getArticalsByCollectId, pushPusherArtical, wrapArtical};
+export { pushArticals, deleteArtical, getArticalfromCollect, getArticalsByCollectId, pushPusherArtical, wrapArtical, getUserArticals, getArticalByUserComments};

@@ -1,10 +1,11 @@
 import * as Sequelize from 'sequelize';
 import {db, testdb} from './config';
+import { info } from './utils/logger';
 var dbconfig = db;
-var logging = true;
+var logging:any = info;
 if(process.env.NODE_ENV == 'test'){
     dbconfig = testdb;
-    logging = false;
+    logging = info;
 }
 var sequelize = new Sequelize.Sequelize(dbconfig.database, dbconfig.user, dbconfig.password, {
     port: 3306,

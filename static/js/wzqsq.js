@@ -188,14 +188,16 @@ var addartical = new Vue({
   data: {
     title: '',
     content: '',
-    msg: ''
+    msg: '',
+    type: ''
   },
   methods: {
     addartical: function () {
       var that = this;
       axios.post('/addArtical', {
         title: this.title,
-        content: this.content
+        content: this.content,
+        type: this.type
       }).then((result) => {
         if (result.data.msg == 'ok') {
           that.msg = 'done';

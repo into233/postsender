@@ -13,6 +13,7 @@ class Artical extends Model {
     public content: string;
     public imagedir: string;
     public userid: number;
+    public type: string;
 
     public readonly createdAt: Date;
     public readonly updatedAt: Date;
@@ -45,6 +46,10 @@ Artical.init({
         type: STRING(140),
         allowNull: true,
     },
+    type:{
+        type:STRING(140),
+        allowNull:true,
+    }
 
 }, {
         tableName: 'articals',

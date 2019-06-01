@@ -6,6 +6,7 @@ import { Model, INTEGER, STRING, HasOneGetAssociationMixin, HasManyAddAssociatio
 class Comment extends Model {
     public id: number;
     public content: string;
+    public ArticalId: number;
 
     public readonly createdAt: Date;
     public readonly updatedAt: Date;

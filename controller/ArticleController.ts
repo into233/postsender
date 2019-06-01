@@ -1,5 +1,5 @@
 import { Context } from "koa";
-import { pushArticals, deleteArtical, getArticalfromCollect, pushPusherArtical, wrapArtical } from "../module/service/ArticalService";
+import { pushArticals, deleteArtical, getArticalfromCollect, pushPusherArtical, wrapArtical, getUserArticals, getArticalsByCollectId, getArticalByUserComments } from "../module/service/ArticalService";
 import { createReadStream } from "fs";
 import Artical from "../module/Artical";
 import { logger } from "../utils/logger";
@@ -65,6 +65,22 @@ var pushArticalsByCollectid = async (ctx: Context, next: Function) => {
         ctx.body = { size: 0, data: { msg: 'collectid not found' } }
     }
 }
+var getUserArticalsController = async(ctx:Context, next:Function)=>{
+    try{
+        var userid = ctx.request.body.userid;
+        if(!verifyVariable(userid)){
+            ctx.myerr = "getUserArticals need userid param";
+            return;
+        }
+        var articals:Array<any> = await getUserArticals(userid);
+        ctx.body = {msg:'ok', size:articals.length, data:articals};
+        ctx.type = 'json';
+    }catch(err){
+        ctx.body = {msg:"error: " + err, data:[], size:0};
+        ctx.type = 'json'
+        return;
+    }
+}
 var articalparse = async (ctx: Context, next: Function) => {
     var userid = ctx.request.body.userid;
     var articalid = ctx.request.body.articalid;
@@ -112,6 +128,8 @@ var AddArtical = async (ctx: Context, next: Function) => {
     var content = ctx.request.body.content || '';
     var userid = ctx.session.userid;
     var collectid = ctx.request.body.collectid || '';
+    var type = ctx.request.body.type || '';
+
     if (ctx.request.files)
         imgfile = ctx.request.files.file.name;
     if (!verifyVariable(userid)) {
@@ -123,7 +141,7 @@ var AddArtical = async (ctx: Context, next: Function) => {
 
     var user = await User.findOne({ where: { id: userid } });
     if (user) {
-        var artical = await user.createArtical({ title: title, content: content, imagedir: imgfile || 'defaultImage.jpg' });
+        var artical = await user.createArtical({ title: title, content: content, imagedir: imgfile || 'defaultImage.jpg', type:type});
         if (collectid == '') {
             var defaultCollect = await getDefaultCollect(user.id);
             if (defaultCollect && artical) {
@@ -218,6 +236,31 @@ var getArticalsFromCollectController = async (ctx: Context, next: Function) => {
     ctx.type = 'json';
     await next();
 }
+var getArticalsByCollectIdController = async(ctx:Context, next:Function)=>{
+    var userid = ctx.request.body.userid;
+    var collectid = ctx.request.body.collectid;
+    if(!verifyVariable(userid)){
+        ctx.myerr = 'getArticalsByCollectIdController error: userid not found';
+        await next();
+        return;
+    }
+    var articles = await getArticalsByCollectId(collectid == undefined?null:collectid, userid);
+    ctx.body = { size: articles.length, data: articles };
+    ctx.type = 'json';
+    await next();
+}
+var getArticalByUserCommentsController = async(ctx:Context, next:Function)=>{
+    var userid = ctx.request.body.userid;
+    if(!verifyVariable(userid)){
+        ctx.myerr = 'getArticalByUserComments error: userid not found';
+        await next();
+        return;
+    }
+    var articles = await getArticalByUserComments(userid);
+    ctx.body = { size: articles.length, data: articles };
+    ctx.type = 'json';
+    await next();
+}
 var getArticleById = async(ctx:Context, next:Function)=>{
     var articleid = ctx.request.body.articleid;
     var userid = ctx.request.body.userid;
@@ -259,4 +302,7 @@ export = {
     'POST /pushArticalsByCollectid': pushArticalsByCollectid,
     'POST /pushPusherArtical': pushPusherArticalContorllser,
     'POST /getArticalsFromCollect': getArticalsFromCollectController,
+    'POST /getUserArticals': getUserArticalsController,
+    'POST /getArticalsByCollectId': getArticalsByCollectIdController,
+    'POST /getArticalByUserComments':getArticalByUserCommentsController,
 }
