@@ -2,17 +2,24 @@ import { Context } from "koa";
 import { logger } from "../utils/logger";
 import { Star } from "../module/Star";
 import { verifyVariable } from "../utils/utils";
+import { Collect } from "../module/Collect";
 
 
 var addStar = async (ctx: Context, next: Function) => {
     var articleid = ctx.request.body.articleid;
     var userid = ctx.request.body.userid;
-    var collectid = ctx.request.body.collectid;
-    if (!verifyVariable(articleid, userid, collectid)) {
+    var collectid:any = ctx.request.body.collectid;
+    if (!verifyVariable(articleid, userid)) {
         logger.error("addStar error: articleid or userid or collectid not found");
         ctx.myerr = "addStar error: articleid or userid or collectid not found";
         await next();
         return;
+    }
+    if(collectid == undefined){
+        collectid = await Collect.findOne({where:{UserId:userid}});
+        if(collectid){
+            collectid = collectid.id;
+        }
     }
 
     if (await Star.findOne({ where: { ArticalId: articleid, CollectId: collectid, UserId: userid } })) {
@@ -32,11 +39,14 @@ var delStar = async (ctx: Context, next: Function) => {
     var articleid = ctx.request.body.articleid;
     var userid = ctx.session.userid;
     var collectid = ctx.request.body.collectid;
-    if (!verifyVariable(articleid, userid, collectid)) {
-        logger.error("addStar error: articleid or userid or collectid not found");
-        ctx.myerr = "addStar error: articleid or userid or collectid not found";
+    if (!verifyVariable(articleid, userid)) {
+        logger.error("addStar error: articleid or userid not found");
+        ctx.myerr = "addStar error: articleid or userid not found";
         await next();
         return;
+    }
+    if(collectid == undefined){
+        collectid = await Collect.findOne({where:{UserId:userid}});
     }
     var star = await Star.findOne({ where: { ArticalId: articleid, CollectId: collectid, UserId: userid } });
     if (star) {
@@ -51,5 +61,5 @@ var delStar = async (ctx: Context, next: Function) => {
 }
 module.exports = {
     'POST /addStar': addStar,
-    'POST /delStar': delStar
+    'POST /delStar': delStar,
 }

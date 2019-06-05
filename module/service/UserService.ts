@@ -56,15 +56,18 @@ var setUserHeadimg = async(userid:number, imgpath:string)=>{
 var getUserFollowers = async(userid:number)=>{
     try{
         var FansId: Array<any> = [];
-        (await Follower.findAll({ attributes: ['FanId'], where: { UserId: userid } })).forEach(function (Follower) {
-            FansId.push(Follower.getDataValue('FanId'));
-        });
+    
+        var followers = await Follower.findAll({ attributes: ['FanId'], where: { UserId: userid } });
+        for(var v of followers){
+            FansId.push(v.FanId);            
+        }
         var fans = await User.findAll({where:{id:FansId}});
 
         var fansjson:Array<any> = []; 
-        fans.forEach(async(user, index)=>{
-            fansjson.push(await wrapUser(user));
-        });
+        
+        for(var s of fans){
+            await fansjson.push(await wrapUser(s));
+        }
 
         return fansjson;
     }catch(err){
@@ -75,15 +78,17 @@ var getUserFollowers = async(userid:number)=>{
 var getUserPushers = async(fanid:number)=>{
     try{
         var PusherIds: Array<any> = [];
-        (await Follower.findAll({ attributes: ['UserId'], where: { Fanid: fanid } })).forEach(function (Follower) {
-            PusherIds.push(Follower.getDataValue('UserId'));
-        });
+        var followers = await Follower.findAll({ attributes: ['UserId'], where: { Fanid: fanid } })
+        for(var v of followers){
+            PusherIds.push(v.UserId);
+        }
         var pusher = await User.findAll({where:{id:PusherIds}});
 
         var pusherjson:Array<any> = []; 
-        pusher.forEach(async(user, index)=>{
-            pusherjson.push(await wrapUser(user));
-        });
+        
+        for(var s of pusher){
+            await pusherjson.push(await wrapUser(s));
+        }
 
         return pusherjson;
     }catch(err){

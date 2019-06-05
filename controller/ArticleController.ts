@@ -265,7 +265,7 @@ var getArticleById = async(ctx:Context, next:Function)=>{
     var articleid = ctx.request.body.articleid;
     var userid = ctx.request.body.userid;
     if(!verifyVariable(articleid, userid)){
-        ctx.myerr = "error: need article id";
+        ctx.myerr = "error: need article id and userid";
         await next();
         return;
     }

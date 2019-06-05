@@ -270,12 +270,12 @@ var getFollowers = async(ctx:Context, next:Function)=>{
 
     try{
         var followers = await getUserFollowers(userid);
-        ctx.body = {msg:'ok', data:followers};
+        ctx.body = {msg:'ok', size:followers.length, data:followers};
         ctx.type = 'json';
         logger.info("get Followers for userid" + userid);
         await next();
     }catch(err){
-        ctx.body = {msg:'error' + err, data:[]};
+        ctx.body = {msg:'error' + err, size:0, data:[]};
         ctx.type = 'json'
         logger.error("ERROR: get Followers for userid" + userid + " " + err);
     }
@@ -289,12 +289,12 @@ var getPusher = async(ctx:Context, next:Function)=>{
     }
     try{
         var Pushers = await getUserPushers(userid);
-        ctx.body = {msg:'ok', data:Pushers};
+        ctx.body = {msg:'ok', size:Pushers.length, data:Pushers};
         ctx.type = 'json';
         logger.info("getPusher for userid" + userid);
         await next();
     }catch(err){
-        ctx.body = {msg:'error' + err, data:[]};
+        ctx.body = {msg:'error' + err, size:0, data:[]};
         ctx.type = 'json'
         logger.error("ERROR: getPusher for userid" + userid + " " + err);
     }
@@ -313,6 +313,7 @@ module.exports = {
     'GET /logoff': logoff,
     'POST /imsg': sendIdentifyCode,
     'POST /updateUser':updateUserConfig,
+    'POST /getPusher':getPusher,
     'POST /getFollowers':getFollowers,
     'POST /getuser': async (ctx: Context, next: Function) => {
         var id;
@@ -329,7 +330,7 @@ module.exports = {
             huser.isfollower = await isfollower(huser.id, ctx.session.userid);
             ctx.type = 'json';
             ctx.body = huser;
-            logger.info("send data" + huser.username);
+            logger.info("send data " + huser.username);
         } catch (error) {
             logger.error(error);
             ctx.myerr="cannot find user";

@@ -53,7 +53,7 @@ app.use(async (ctx: Koa.Context, next: Function) => {
     //这里相当于一个中间件, 判断ctx.myerr是否为null, 如果不为null, 则返回数据为json, 返回内容为myerr,并将myerr设为空,以便之后的判断
     if(ctx.myerr != null){
         ctx.type = 'json';
-        ctx.body = {msg:ctx.myerr};
+        ctx.body = {msg:ctx.myerr, data:[]};
         logger.error(ctx.myerr);
         ctx.myerr = null;
     }

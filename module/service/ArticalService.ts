@@ -135,6 +135,14 @@ var wrapArtical = async (artical: Artical, userid: number | null) => {
     } else {
         articaljson.isUserPraised = false;
     }
+    if(userid != null){
+        var user = await User.findOne({where:{id:userid}});
+        if(user){
+            articaljson.username = user.username;
+            articaljson.headimage = user.headimage;
+        }
+    }
+    
     //TODO:many other wrapper
     articaljson.starCount = await artical.countStars();
     articaljson.commentCount = await artical.countComments();
@@ -150,7 +158,7 @@ var getUserArticals = async(userid: number)=>{
             for(let x of articals){
                 articalsJson.push(await wrapArtical(x, userid));
             }
-            logger.info("getUserArticals success for userid" + userid);
+            logger.info("getUserArticals success for userid " + userid);
             return articalsJson;
         }else{
             return [];
