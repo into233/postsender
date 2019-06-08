@@ -1,12 +1,13 @@
 import { Context } from "koa";
 import Artical from "../module/Artical";
 import { User } from "../module/User";
-import { getJsonFromModelArr } from "../utils/utils";
+import { getJsonFromModelArr, verifyVariable } from "../utils/utils";
 import { isUserPraiseComment } from "../module/service/CommentPraiseService";
 import { createComment, Comment } from "../module/Comment";
 import { createCommentPraise, deleteCommentPraise, CommentPraise } from "../module/CommentPraise";
 import { logger } from "../utils/logger";
 import { pushAllUsergetComments } from "../module/service/CommentService";
+import { MessageType, createMessage } from "../module/Message";
 
 
 var getComments = async (ctx: Context, next: Function) => {
@@ -16,7 +17,7 @@ var getComments = async (ctx: Context, next: Function) => {
     }catch(err){
         logger.error("getComments error: " + err);
         ctx.type = 'json';
-        ctx.body = { msg: 'error: user or artical not add' };
+        ctx.body = { msg: 'error: user or artical not add' , data:[],size:0};
     }
     
     var artical = await Artical.findOne({ where: { id: articalid } });
@@ -59,7 +60,14 @@ var addComment = async (ctx: Context, next: Function) => {
     if (userid) {
         var user = await User.findOne({ where: { id: userid } });
         if (user) {
-            await createComment({ content: content, UserId:user.id, ArticalId:articalid });
+            var comment =  await createComment({ content: content, UserId:user.id, ArticalId:articalid });
+            if(comment){
+                Artical.findOne({where:{id:articalid}}).then(function(artical){
+                    createMessage({type:MessageType.addComment, CommentId:comment.id, UserId:artical != null ? artical.userid:0});
+                })
+
+            }
+
             ctx.type = 'json';
             ctx.body = { msg: 'ok' };
             await next();
@@ -145,11 +153,33 @@ var pushAllUsergetCommentsController = async (ctx: Context, next: Function) => {
         return;
     }
 }
+var getUserOwnCommentsByArticalId = async(ctx:Context, next:Function)=>{
+    var userid = ctx.request.body.userid;
+    var articalid = ctx.request.body.articalid;
+
+    if(!verifyVariable(userid, articalid)){
+        ctx.myerr = 'need userid and articalid';
+        logger.error("need userid and articalid");
+        return;
+    }
+
+    var comments = await Comment.findAll({where:{ArticalId:articalid, UserId:userid}});
+    var commentsJson:Array<any> = [];
+
+    for(var comment of comments){
+        commentsJson.push(comment.toJSON());
+    }
+
+    if(comments)
+    ctx.body = {msg:"ok", size:comments.length, data:commentsJson};
+    ctx.type = 'json';
+}
 
 export = {
     'POST /getComments': getComments,
     'POST /addComment': addComment,
     'POST /commentPraise':commentPraise,
     'POST /unPraiseComment':unPraiseComment,
-    'POST /pushAllUsergetComments':pushAllUsergetCommentsController
+    'POST /pushAllUsergetComments':pushAllUsergetCommentsController,
+    'POST /getUserOwnComments':getUserOwnCommentsByArticalId
 }

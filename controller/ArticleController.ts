@@ -8,6 +8,8 @@ import { User } from "../module/User";
 import { getDefaultCollect, getArticalsFromCollect } from "../module/service/CollectService";
 import { Collect } from "../module/Collect";
 import { verifyVariable } from "../utils/utils";
+import { Message, createMessage, MessageType } from "../module/Message";
+import { ArticalPraise } from "../module/ArticalPraise";
 
 
 
@@ -92,14 +94,17 @@ var articalparse = async (ctx: Context, next: Function) => {
         return;
     }
 
-    await parseArtical(userid, articalid).then((result) => {
+    var ap = await parseArtical(userid, articalid);
+    var artical = await Artical.findOne({where:{id:articalid}});
+    if(ap && artical){
         ctx.body = { msg: 'ok' };
         ctx.type = 'json';
-    }).catch((err) => {
-        logger.error(err);
-        ctx.body = { msg: 'err 服务器出错' };
-        ctx.type = 'json';
-    });
+        createMessage({type:MessageType.addArticalPraise, ArticalPraiseId:ap.id, UserId:artical.userid});
+    }else{
+        ctx.myerr = "server inner error";
+        return;
+    }
+
     await next();
 }
 var unpraiseArtical = async (ctx: Context, next: Function) => {
@@ -123,7 +128,7 @@ var unpraiseArtical = async (ctx: Context, next: Function) => {
 }
 
 var AddArtical = async (ctx: Context, next: Function) => {
-    var imgfile;
+    var imgfile = ctx.request.body.imagedir;
     var title = ctx.request.body.title || '';
     var content = ctx.request.body.content || '';
     var userid = ctx.session.userid;

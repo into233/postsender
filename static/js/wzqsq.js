@@ -179,7 +179,7 @@ var userconfig = new Vue({
   el: '#nav_bar',
   data: {
     username: getCookie('username'),
-    userid:getCookie('id')
+    userid:getCookie('userid')
   }
 })
 var addartical = new Vue({

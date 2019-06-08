@@ -3,6 +3,7 @@ import { logger } from "../utils/logger";
 import { User } from "../module/User";
 import { where } from "sequelize/types";
 import { createFollower, Follower } from "../module/Follower";
+import { createMessage, MessageType, Message } from "../module/Message";
 
 var FanSomebody = async(ctx:Context, next:Function)=>{
     try{
@@ -17,14 +18,17 @@ var FanSomebody = async(ctx:Context, next:Function)=>{
         var fan = await User.findOne({where:{id:fanid}});
 
         if(user && fan){
-            if(await Follower.findOne({where:{UserId:user.id, FanId:fan.id}}))
+            var follower = await Follower.findOne({where:{UserId:user.id, FanId:fan.id}});
+            if(follower)
                 {
                     logger.error("follower has already exists");
                     ctx.myerr = "follower has already exists";
                     await next();
                     return;
                 }
-            createFollower(user,fan);
+            var tfollower = await createFollower(user,fan);
+            
+            await createMessage({type:MessageType.addFollower, UserId:userid, FollowerId:tfollower.id, FanId:fan.id});
             ctx.type = 'json';
             ctx.body = {msg:'ok'};
         }else{

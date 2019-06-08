@@ -6,6 +6,7 @@ import { Collect } from './Collect';
 import { ArticalPraise } from './ArticalPraise';
 import { Star } from './Star';
 import { Follower } from './Follower';
+import { Message } from './Message';
 
 class Artical extends Model {
     public id: number;
@@ -71,6 +72,5 @@ Artical.hasMany(Star, {constraints:false});
 User.hasMany(Star, {constraints:false});
 
 User.hasMany(Follower, {constraints:false});
-
 
 export default Artical;

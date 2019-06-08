@@ -9,8 +9,8 @@ var parseArtical = async (userid: number, articalid: number) => {
         var user = await User.findOne({ where: { id: userid } });
         if (user) {
             var userid: number = user.id;
-            createArticalPraise(articalid, userid);
-            return 1;
+            return await createArticalPraise(articalid, userid);
+            
         } else {
             throw Error('cannot find user');
         }

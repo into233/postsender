@@ -13,6 +13,7 @@ import { logger } from "../utils/logger";
 import { uploadfilepath } from "../config";
 import { isfollower } from "../module/Follower";
 import { sendIdentityCodeUtil, Intrandom, verifyVariable } from "../utils/utils";
+import { Message } from "../module/Message";
 
 
 
@@ -160,6 +161,7 @@ var sync = async (ctx: Context, next: Function) => {
         await Artical.findAll();
         await ArticalPraise.findAll();
         await Collect.findAll();
+        await Message.findAll();
     })
     ctx.response.type = 'html';
     ctx.response.body = 'sync success';
