@@ -99,7 +99,7 @@ var articalparse = async (ctx: Context, next: Function) => {
     if(ap && artical){
         ctx.body = { msg: 'ok' };
         ctx.type = 'json';
-        createMessage({type:MessageType.addArticalPraise, ArticalPraiseId:ap.id, UserId:artical.userid});
+        createMessage({type:MessageType.addArticalPraise, ArticalPraiseId:ap.id, UserId:artical.UserId});
     }else{
         ctx.myerr = "server inner error";
         return;

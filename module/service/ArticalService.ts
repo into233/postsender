@@ -136,7 +136,7 @@ var wrapArtical = async (artical: Artical, userid: number | null) => {
         articaljson.isUserPraised = false;
     }
     if(userid != null){
-        var user = await User.findOne({where:{id:userid}});
+        var user = await User.findOne({where:{id:artical.userid}});//这里要是文章作者的头像
         if(user){
             articaljson.username = user.username;
             articaljson.headimage = user.headimage;

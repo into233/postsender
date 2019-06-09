@@ -13,7 +13,7 @@ class Artical extends Model {
     public title:string;
     public content: string;
     public imagedir: string;
-    public userid: number;
+    public UserId: number;
     public type: string;
 
     public readonly createdAt: Date;

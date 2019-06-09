@@ -63,7 +63,7 @@ var addComment = async (ctx: Context, next: Function) => {
             var comment =  await createComment({ content: content, UserId:user.id, ArticalId:articalid });
             if(comment){
                 Artical.findOne({where:{id:articalid}}).then(function(artical){
-                    createMessage({type:MessageType.addComment, CommentId:comment.id, UserId:artical != null ? artical.userid:0});
+                    createMessage({type:MessageType.addComment, CommentId:comment.id, UserId:artical != null ? artical.UserId:0});
                 })
 
             }
