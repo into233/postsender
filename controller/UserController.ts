@@ -74,7 +74,7 @@ var POSTregist = async (ctx: Context, next: Function) => {
         Collect.create({UserId:newuser.id, title:"默认文集"});
         logger.info("create a User " + newuser.id + " " + newuser.username + " " + newuser.gender);
         ctx.cookies.set('userid', newuser.id);
-        ctx.cookies.set('username', newUserConfig.username);
+        ctx.cookies.set('username', encodeURIComponent(newUserConfig.username));
         if (ctx.request.body.android) {
             ctx.response.type = 'json';
             ctx.response.body = { msg: 'regist success' };
@@ -334,7 +334,7 @@ module.exports = {
             ctx.body = huser;
             logger.info("send data " + huser.username);
         } catch (error) {
-            logger.error(error);
+            logger.error(error.message);
             ctx.myerr="cannot find user";
         }
     },

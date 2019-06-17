@@ -41,7 +41,7 @@ var getComments = async (ctx: Context, next: Function) => {
         await next();
     } else {
         ctx.type = 'json';
-        ctx.body = { msg: 'error: user or artical not found' };
+        ctx.body = { msg: 'error: user or artical not found', data:[], size:0 };
     }
 }
 

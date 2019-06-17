@@ -4,6 +4,7 @@ import { User } from './User';
 import { Model, INTEGER, STRING, HasOneGetAssociationMixin, HasManyAddAssociationMixin, HasManyCountAssociationsMixin } from 'sequelize';
 import { ArticalPraise } from './ArticalPraise';
 import { Comment } from './Comment';
+import { Follower } from './Follower';
 
 enum MessageType{
     addArticalPraise,addFollower,addComment
@@ -86,7 +87,6 @@ var createMessage = async (message: IMessage) => {
     })
 };
 
-User.hasMany(Message, {onDelete:'CASCADE'});
 ArticalPraise.hasMany(Message, {onDelete:'CASCADE'});
 Comment.hasMany(Message, {onDelete:'CASCADE'});
 
