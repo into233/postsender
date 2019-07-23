@@ -170,10 +170,10 @@ var getUserArticals = async(userid: number)=>{
 }
 
 var pushPusherArtical = async (page: number, size: number, userid: number) => {
-    if (page == null || size == undefined) {
+    if (page == null) {
         page = 0;
     }
-    if (size == null || size == undefined) {
+    if (size == null) {
         size = 10;
     }
 

@@ -36,9 +36,12 @@ var addStar = async (ctx: Context, next: Function) => {
 }
 var delStar = async (ctx: Context, next: Function) => {
 
-    var articleid = ctx.request.body.articleid;
-    var userid = ctx.session.userid;
-    var collectid = ctx.request.body.collectid;
+    // var articleid = ctx.request.body.articleid;
+    // var userid = ctx.session.userid;
+    // var collectid = ctx.request.body.collectid;
+
+    let [articleid, userid, collectid] = ctx.request.body;//解构的妙用
+
     if (!verifyVariable(articleid, userid)) {
         logger.error("addStar error: articleid or userid not found");
         ctx.myerr = "addStar error: articleid or userid not found";
